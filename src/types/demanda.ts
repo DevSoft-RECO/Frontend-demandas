@@ -1,7 +1,8 @@
 import type { Agencia } from './agencia';
+import type { Seguimiento } from './seguimiento';
 
 export interface Demanda {
-    id?: number;
+    id: number;
     id_agencia: number | null;
     agencia?: Agencia;
     no_credito: string | null;
@@ -23,6 +24,7 @@ export interface Demanda {
     estado_legal: string | null;
     seguimiento_legacy: string | null;
     observacion_2: string | null;
+    seguimiento?: Seguimiento;
     created_at?: string;
     updated_at?: string;
 }
