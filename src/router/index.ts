@@ -8,6 +8,7 @@ import AdminLayout from '@/layouts/AdminLayout.vue'
 import CallbackView from '@/views/CallbackView.vue'
 import DashboardView from '@/views/DashboardView.vue'
 import UnauthorizedView from '@/views/UnauthorizedView.vue'
+import BufetesView from '@/views/BufetesView.vue'
 
 const routes: RouteRecordRaw[] = [
     // 1. RUTAS PÚBLICAS
@@ -41,6 +42,15 @@ const routes: RouteRecordRaw[] = [
                 component: DashboardView,
                 meta: {
                     title: 'Gestiones'
+                }
+            }
+            ,
+            {
+                path: 'ajustes/bufetes',
+                name: 'bufetes',
+                component: BufetesView,
+                meta: {
+                    title: 'Bufetes'
                 }
             }
         ]
