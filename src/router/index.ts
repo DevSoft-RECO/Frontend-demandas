@@ -9,6 +9,7 @@ import CallbackView from '@/views/CallbackView.vue'
 import DashboardView from '@/views/DashboardView.vue'
 import UnauthorizedView from '@/views/UnauthorizedView.vue'
 import BufetesView from '@/views/BufetesView.vue'
+import PresetsView from '@/views/presets/PresetsView.vue'
 
 const routes: RouteRecordRaw[] = [
     // 1. RUTAS PÚBLICAS
@@ -51,6 +52,14 @@ const routes: RouteRecordRaw[] = [
                 component: BufetesView,
                 meta: {
                     title: 'Bufetes'
+                }
+            },
+            {
+                path: 'ajustes/presets',
+                name: 'presets',
+                component: PresetsView,
+                meta: {
+                    title: 'Configuración de Presets'
                 }
             }
         ]
