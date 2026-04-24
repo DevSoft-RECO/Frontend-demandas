@@ -33,6 +33,23 @@
                     <p class="text-sm font-bold text-gray-900 dark:text-white">{{ formatCurrency(demanda.monto_demanda) }}</p>
                 </div>
             </div>
+            <div v-if="form.id_preset > 0" class="mt-4 p-3 bg-emerald-600 rounded-xl text-white flex items-center justify-between shadow-lg shadow-emerald-500/20">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-white/20 rounded-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black uppercase opacity-80 tracking-widest">Total Comisión Pactada</p>
+                        <p class="text-lg font-black">{{ formatCurrency(totalCommissionAmount) }} ({{ form.porcentaje_comision }}%)</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-[10px] font-black uppercase opacity-80 tracking-widest">Restante por Distribuir</p>
+                    <p class="text-lg font-black" :class="remainingCommission < 0 ? 'text-red-200' : ''">
+                        {{ formatCurrency(remainingCommission) }}
+                    </p>
+                </div>
+            </div>
           </div>
 
           <div class="space-y-6">
@@ -149,7 +166,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
+import Swal from 'sweetalert2'
 import type { Demanda } from '@/types/demanda'
 import type { Bufete } from '../../types/bufete'
 import type { Preset } from '../../types/preset'
@@ -170,6 +188,7 @@ const presets = ref<Preset[]>([])
 const form = ref({
     id_abogado: 0,
     id_preset: 0,
+    porcentaje_comision: 0,
     pago_unico: 0,
     monto_desestimacion: 0,
     sugerido1: 0,
@@ -203,12 +222,29 @@ watch(() => props.isOpen, (val) => {
     }
 })
 
+const totalCommissionAmount = computed(() => {
+    const monto = props.demanda?.monto_demanda || 0
+    return monto * (form.value.porcentaje_comision / 100)
+})
+
+const totalPactadoSum = computed(() => {
+    return (form.value.pago_pactado_1 || 0) + 
+           (form.value.pago_pactado_2 || 0) + 
+           (form.value.pago_pactado_3 || 0) + 
+           (form.value.pago_pactado_4 || 0)
+})
+
+const remainingCommission = computed(() => {
+    return totalCommissionAmount.value - totalPactadoSum.value
+})
+
 const resetForm = () => {
     if (props.demanda?.seguimiento) {
         const s = props.demanda.seguimiento
         form.value = {
             id_abogado: s.id_abogado,
-            id_preset: 0, // No guardamos el ID del preset en el seguimiento, se carga manual si se quiere cambiar
+            id_preset: 0,
+            porcentaje_comision: s.porcentaje_demanda,
             pago_unico: s.pago_unico,
             monto_desestimacion: s.monto_desestimacion,
             sugerido1: s.pago_sugerido_1,
@@ -224,6 +260,7 @@ const resetForm = () => {
         form.value = {
             id_abogado: 0,
             id_preset: 0,
+            porcentaje_comision: 0,
             pago_unico: 0,
             monto_desestimacion: 0,
             sugerido1: 0,
@@ -242,7 +279,8 @@ const onPresetChange = () => {
     const preset = presets.value.find(p => p.id === form.value.id_preset)
     if (preset && props.demanda && props.demanda.monto_demanda !== undefined && props.demanda.monto_demanda !== null) {
         const monto = props.demanda.monto_demanda
-        const totalComision = monto * ((preset.porcentaje_comision || 0) / 100)
+        form.value.porcentaje_comision = preset.porcentaje_comision || 0
+        const totalComision = monto * (form.value.porcentaje_comision / 100)
         
         form.value.pago_unico = preset.monto_pago_unico || 0
         form.value.monto_desestimacion = preset.monto_desestimacion || 0
@@ -268,17 +306,30 @@ const formatCurrency = (value: number | null | undefined) => {
 }
 
 const close = () => emit('close')
-const submit = () => emit('save', {
-    id_demanda: props.demanda?.id,
-    id_abogado: form.value.id_abogado,
-    id_preset: form.value.id_preset,
-    pago_unico: form.value.pago_unico,
-    monto_desestimacion: form.value.monto_desestimacion,
-    pago_pactado_1: form.value.pago_pactado_1,
-    pago_pactado_2: form.value.pago_pactado_2,
-    pago_pactado_3: form.value.pago_pactado_3,
-    pago_pactado_4: form.value.pago_pactado_4
-})
+const submit = async () => {
+    // Validar que no exceda el total
+    if (remainingCommission.value < -0.01) { 
+        await Swal.fire({
+            title: 'Límite de Comisión Excedido',
+            text: 'La suma de los pagos pactados no puede superar el monto total de la comisión calculada.',
+            icon: 'warning',
+            confirmButtonColor: '#10b981'
+        })
+        return
+    }
+
+    emit('save', {
+        id_demanda: props.demanda?.id,
+        id_abogado: form.value.id_abogado,
+        id_preset: form.value.id_preset,
+        pago_unico: form.value.pago_unico || 0,
+        monto_desestimacion: form.value.monto_desestimacion || 0,
+        pago_pactado_1: form.value.pago_pactado_1 || 0,
+        pago_pactado_2: form.value.pago_pactado_2 || 0,
+        pago_pactado_3: form.value.pago_pactado_3 || 0,
+        pago_pactado_4: form.value.pago_pactado_4 || 0
+    })
+}
 </script>
 
 <style scoped>
