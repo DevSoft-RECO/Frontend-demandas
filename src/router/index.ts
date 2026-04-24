@@ -10,6 +10,7 @@ import DashboardView from '@/views/DashboardView.vue'
 import UnauthorizedView from '@/views/UnauthorizedView.vue'
 import BufetesView from '@/views/BufetesView.vue'
 import PresetsView from '@/views/presets/PresetsView.vue'
+import DemandasListView from '@/views/demandas/DemandasListView.vue'
 
 const routes: RouteRecordRaw[] = [
     // 1. RUTAS PÚBLICAS
@@ -60,6 +61,14 @@ const routes: RouteRecordRaw[] = [
                 component: PresetsView,
                 meta: {
                     title: 'Configuración de Presets'
+                }
+            },
+            {
+                path: 'demandas/lista',
+                name: 'demandas-lista',
+                component: DemandasListView,
+                meta: {
+                    title: 'Listado de Demandas'
                 }
             }
         ]
