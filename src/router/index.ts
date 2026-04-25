@@ -70,6 +70,14 @@ const routes: RouteRecordRaw[] = [
                 meta: {
                     title: 'Listado de Demandas'
                 }
+            },
+            {
+                path: 'abogado/seguimiento',
+                name: 'abogado-seguimiento',
+                component: () => import('@/views/abogado/SeguimientoAbogadoView.vue'),
+                meta: {
+                    title: 'Mi Seguimiento Procesal'
+                }
             }
         ]
     },
