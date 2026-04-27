@@ -237,8 +237,29 @@ const isExceedingLimit = (n: number) => {
 const handlePayment = async (etapa: number | string) => {
     if (!props.seguimientoId) return
     
-    // Alerta de pago muy adelantado (Solo para etapas numéricas)
-    if (typeof etapa === 'number') {
+    let isCancellation = false
+
+    // Lógica Especial para Desestimación
+    if (etapa === 'desestimacion') {
+        const result = await Swal.fire({
+            title: 'Gestión de Desestimación',
+            text: '¿Desea registrar el pago de este monto o anular el cobro definitivamente (poner en 0)?',
+            icon: 'question',
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: 'Sí, Registrar Pago',
+            denyButtonText: 'No, Anular Cobro',
+            cancelButtonText: 'Volver',
+            confirmButtonColor: '#10b981',
+            denyButtonColor: '#f43f5e',
+        })
+
+        if (result.isDismissed) return
+        if (result.isDenied) {
+            isCancellation = true
+        }
+    } else if (typeof etapa === 'number') {
+        // Alerta de pago muy adelantado (Solo para etapas numéricas)
         const legalStage = detalle.value?.seguimiento?.estado_seguimiento || 1
         if (etapa === 4 && legalStage === 1) {
             const { isConfirmed } = await Swal.fire({
@@ -255,17 +276,19 @@ const handlePayment = async (etapa: number | string) => {
 
     processing.value = etapa
     try {
-        await pagosService.registrarDesembolso(props.seguimientoId, etapa)
+        await pagosService.registrarDesembolso(props.seguimientoId, etapa, isCancellation)
         await fetchDetalle()
         emit('refresh')
+        
         Swal.fire({
             icon: 'success',
-            title: 'Desembolso Registrado',
-            timer: 1500,
+            title: isCancellation ? 'Cobro Anulado' : 'Desembolso Registrado',
+            text: isCancellation ? 'El monto de desestimación se ha limpiado.' : 'El pago se ha capturado correctamente.',
+            timer: 2000,
             showConfirmButton: false
         })
     } catch (error: any) {
-        Swal.fire('Error', error.response?.data?.detail || 'No se pudo registrar el pago', 'error')
+        Swal.fire('Error', error.response?.data?.detail || 'No se pudo procesar la solicitud', 'error')
     } finally {
         processing.value = null
     }

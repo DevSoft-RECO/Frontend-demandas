@@ -38,15 +38,6 @@
           </div>
         </div>
 
-        <div class="mt-4">
-          <div class="text-xs font-extrabold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-            Abogado asignado
-          </div>
-
-          <div class="mt-2 text-sm text-gray-600 dark:text-gray-300">
-            Este registro guarda el nombre y teléfono copiados desde `usuarios`.
-          </div>
-        </div>
       </div>
     </div>
 
