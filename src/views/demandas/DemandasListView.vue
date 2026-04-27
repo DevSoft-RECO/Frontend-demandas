@@ -128,6 +128,7 @@
                     <svg v-if="!demanda.seguimiento" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
                     <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                   </button>
+
                   <button 
                     @click="openEditModal(demanda)"
                     class="p-2 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition"
@@ -168,6 +169,13 @@
         @close="closeAssignModal"
         @save="handleAssignAbogado"
     />
+
+    <LiquidacionModal 
+        :is-open="isPagosModalOpen"
+        :seguimiento-id="selectedSeguimientoId"
+        @close="isPagosModalOpen = false"
+        @refresh="fetchDemandas"
+    />
   </div>
 </template>
 
@@ -177,6 +185,7 @@ import { demandaService } from '@/services/demandaService'
 import type { Demanda } from '@/types/demanda'
 import DemandaModal from '@/components/demandas/DemandaModal.vue'
 import AsignarAbogadoModal from '../../components/demandas/AsignarAbogadoModal.vue'
+import LiquidacionModal from '../../components/pagos/LiquidacionModal.vue'
 import { seguimientoService } from '../../services/seguimientoService'
 import Swal from 'sweetalert2'
 
@@ -187,7 +196,9 @@ const searchQuery = ref('')
 const filterEstado = ref('')
 const isModalOpen = ref(false)
 const isAssignModalOpen = ref(false)
+const isPagosModalOpen = ref(false)
 const selectedDemanda = ref<Demanda | null>(null)
+const selectedSeguimientoId = ref<number | null>(null)
 
 const fetchDemandas = async () => {
     loading.value = true
@@ -232,6 +243,11 @@ const openAssignModal = (demanda: Demanda) => {
 const closeAssignModal = () => {
     isAssignModalOpen.value = false
     selectedDemanda.value = null
+}
+
+const openPagosModal = (seguimientoId: number) => {
+    selectedSeguimientoId.value = seguimientoId
+    isPagosModalOpen.value = true
 }
 
 const handleAssignAbogado = async (data: any) => {

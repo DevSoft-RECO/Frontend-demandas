@@ -78,6 +78,14 @@ const routes: RouteRecordRaw[] = [
                 meta: {
                     title: 'Mi Seguimiento Procesal'
                 }
+            },
+            {
+                path: 'finanzas/pagos',
+                name: 'gestion-pagos',
+                component: () => import('@/views/admin/GestionPagosView.vue'),
+                meta: {
+                    title: 'Gestión de Pagos y Liquidaciones'
+                }
             }
         ]
     },
