@@ -110,10 +110,18 @@
                         </thead>
                         <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                             <tr>
-                                <td class="px-4 py-3 font-medium">1. Presentación</td>
+                                <td class="px-4 py-3 font-medium">
+                                    1. Presentación
+                                    <p v-if="form.pago_pactado_1 > limitStage1" class="text-[9px] font-bold text-red-500 uppercase mt-1">Máximo permitido: 25% ({{ formatCurrency(limitStage1) }})</p>
+                                </td>
                                 <td class="px-4 py-3 text-right text-gray-500">{{ formatCurrency(form.sugerido1) }}</td>
                                 <td class="px-4 py-3 text-right">
-                                    <input v-model.number="form.pago_pactado_1" type="number" class="w-32 px-2 py-1 bg-white dark:bg-gray-700 border border-emerald-200 rounded text-right focus:ring-2 focus:ring-emerald-500 outline-none transition">
+                                    <input 
+                                        v-model.number="form.pago_pactado_1" 
+                                        type="number" 
+                                        class="w-32 px-2 py-1 bg-white dark:bg-gray-700 border rounded text-right outline-none transition"
+                                        :class="form.pago_pactado_1 > limitStage1 ? 'border-red-500 focus:ring-2 focus:ring-red-500 text-red-600' : 'border-emerald-200 focus:ring-2 focus:ring-emerald-500'"
+                                    >
                                 </td>
                             </tr>
                             <tr>
@@ -238,6 +246,11 @@ const remainingCommission = computed(() => {
     return totalCommissionAmount.value - totalPactadoSum.value
 })
 
+const limitStage1 = computed(() => {
+    if (form.value.pago_unico > 0) return 999999999 // Si es pago único, no hay límite del 25%
+    return totalCommissionAmount.value * 0.25
+})
+
 const resetForm = () => {
     if (props.demanda?.seguimiento) {
         const s = props.demanda.seguimiento
@@ -307,6 +320,19 @@ const formatCurrency = (value: number | null | undefined) => {
 
 const close = () => emit('close')
 const submit = async () => {
+    // Validar límite del 25% en Etapa 1 (si no es pago único)
+    if (form.value.pago_unico === 0) {
+        if (form.value.pago_pactado_1 > (limitStage1.value + 0.01)) {
+            await Swal.fire({
+                title: 'Límite Etapa 1 Excedido',
+                text: `El pago pactado para la etapa de Presentación no puede superar el 25% de la comisión total (${formatCurrency(limitStage1.value)}).`,
+                icon: 'error',
+                confirmButtonColor: '#10b981'
+            })
+            return
+        }
+    }
+
     // Validar que no exceda el total
     if (remainingCommission.value < -0.01) { 
         await Swal.fire({
