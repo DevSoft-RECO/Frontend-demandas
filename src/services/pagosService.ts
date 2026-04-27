@@ -26,7 +26,7 @@ export const pagosService = {
         return response.data;
     },
 
-    async registrarDesembolso(id_seguimiento: number, etapa: number) {
+    async registrarDesembolso(id_seguimiento: number, etapa: number | string) {
         const response = await api.patch('/pagos/registrar-desembolso', { id_seguimiento, etapa });
         return response.data;
     }

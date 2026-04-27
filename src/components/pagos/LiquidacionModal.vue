@@ -50,44 +50,101 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 dark:divide-gray-700">
-                <tr v-for="n in 4" :key="n" class="hover:bg-slate-50 dark:hover:bg-gray-900/20 transition-colors">
-                  <td class="px-6 py-4">
-                    <p class="text-sm font-bold text-slate-800 dark:text-white">{{ getEtapaLabel(n) }}</p>
-                    <p v-if="isAdvised(n)" class="text-[9px] font-bold text-amber-600 uppercase mt-0.5 flex items-center gap-1">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                        Pago Anticipado
-                    </p>
-                  </td>
-                  <td class="px-6 py-4">
-                    <p class="text-sm font-black text-slate-700 dark:text-slate-300">{{ formatCurrency(getPactado(n)) }}</p>
-                  </td>
-                  <td class="px-6 py-4 text-center">
-                    <span 
-                      v-if="isPaid(n)"
-                      class="px-3 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-full text-[10px] font-black uppercase"
-                    >
-                      Pagado
-                    </span>
-                    <span 
-                      v-else
-                      class="px-3 py-1 bg-slate-100 text-slate-500 dark:bg-gray-700 dark:text-gray-400 rounded-full text-[10px] font-black uppercase"
-                    >
-                      Pendiente
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 text-right">
-                    <button 
-                      v-if="!isPaid(n)"
-                      @click="handlePayment(n)"
-                      :disabled="isExceedingLimit(n) || processing === n"
-                      class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-md shadow-emerald-500/20 disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                      {{ processing === n ? '...' : 'Registrar Pago' }}
-                    </button>
-                    <div v-else class="text-[10px] font-bold text-slate-400">
-                        {{ formatDate(getFechaPago(n)) }}
-                    </div>
-                  </td>
+                <!-- Etapas Procesales -->
+                <template v-for="n in 4" :key="n">
+                  <tr v-if="getPactado(n) > 0" class="hover:bg-slate-50 dark:hover:bg-gray-900/20 transition-colors">
+                    <td class="px-6 py-4">
+                      <p class="text-sm font-bold text-slate-800 dark:text-white">{{ getEtapaLabel(n) }}</p>
+                      <p v-if="isAdvised(n)" class="text-[9px] font-bold text-amber-600 uppercase mt-0.5 flex items-center gap-1">
+                          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                          Pago Anticipado
+                      </p>
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="flex flex-col">
+                          <span class="text-[9px] font-bold text-slate-400 uppercase leading-none mb-1">Monto a Liquidar</span>
+                          <p class="text-sm font-black text-slate-700 dark:text-slate-300">{{ formatCurrency(getPactado(n)) }}</p>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                      <span 
+                        v-if="isPaid(n)"
+                        class="px-3 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-full text-[10px] font-black uppercase"
+                      >
+                        Pagado
+                      </span>
+                      <span 
+                        v-else
+                        class="px-3 py-1 bg-slate-100 text-slate-500 dark:bg-gray-700 dark:text-gray-400 rounded-full text-[10px] font-black uppercase"
+                      >
+                        Pendiente
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                      <button 
+                        v-if="!isPaid(n)"
+                        @click="handlePayment(n)"
+                        :disabled="isExceedingLimit(n) || processing === n"
+                        class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-md shadow-emerald-500/20 disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        {{ processing === n ? '...' : 'Registrar' }}
+                      </button>
+                      <div v-else class="text-[10px] font-bold text-slate-400">
+                          {{ formatDate(getFechaPago(n)) }}
+                      </div>
+                    </td>
+                  </tr>
+                </template>
+
+                <!-- Casos Especiales (Solo si hay montos > 0) -->
+                <tr v-if="(detalle?.seguimiento?.pago_unico || 0) > 0 || (detalle?.seguimiento?.monto_desestimacion || 0) > 0" class="bg-slate-50/50 dark:bg-gray-900/40">
+                    <td colspan="4" class="px-6 py-2 text-[9px] font-black text-slate-400 uppercase tracking-widest">Negociaciones Especiales</td>
+                </tr>
+
+                <!-- Pago Único -->
+                <tr v-if="(detalle?.seguimiento?.pago_unico || 0) > 0" class="hover:bg-slate-50 dark:hover:bg-gray-900/20 transition-colors">
+                    <td class="px-6 py-4">
+                        <p class="text-sm font-bold text-indigo-600 dark:text-indigo-400 uppercase">Pago Único (Liquidación Total)</p>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex flex-col">
+                            <span class="text-[9px] font-bold text-slate-400 uppercase leading-none mb-1">Monto a Liquidar</span>
+                            <p class="text-sm font-black text-indigo-700 dark:text-indigo-300">{{ formatCurrency(detalle?.seguimiento?.pago_unico) }}</p>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <span v-if="detalle?.seguimiento?.is_pagado_unico" class="px-3 py-1 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 rounded-full text-[10px] font-black uppercase">Pagado</span>
+                        <span v-else class="px-3 py-1 bg-slate-100 text-slate-500 dark:bg-gray-700 dark:text-gray-400 rounded-full text-[10px] font-black uppercase">Pendiente</span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <button v-if="!detalle?.seguimiento?.is_pagado_unico" @click="handlePayment('unico')" :disabled="processing === 'unico'" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-md shadow-indigo-500/20">
+                            {{ processing === 'unico' ? '...' : 'Registrar' }}
+                        </button>
+                        <div v-else class="text-[10px] font-bold text-slate-400">{{ formatDate(detalle?.seguimiento?.fecha_pago_unico) }}</div>
+                    </td>
+                </tr>
+
+                <!-- Monto Desestimación -->
+                <tr v-if="(detalle?.seguimiento?.monto_desestimacion || 0) > 0" class="hover:bg-slate-50 dark:hover:bg-gray-900/20 transition-colors">
+                    <td class="px-6 py-4">
+                        <p class="text-sm font-bold text-rose-600 dark:text-rose-400 uppercase">Monto por Desestimación</p>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex flex-col">
+                            <span class="text-[9px] font-bold text-slate-400 uppercase leading-none mb-1">Monto a Liquidar</span>
+                            <p class="text-sm font-black text-rose-700 dark:text-rose-300">{{ formatCurrency(detalle?.seguimiento?.monto_desestimacion) }}</p>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <span v-if="detalle?.seguimiento?.is_pagado_desestimacion" class="px-3 py-1 bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 rounded-full text-[10px] font-black uppercase">Pagado</span>
+                        <span v-else class="px-3 py-1 bg-slate-100 text-slate-500 dark:bg-gray-700 dark:text-gray-400 rounded-full text-[10px] font-black uppercase">Pendiente</span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <button v-if="!detalle?.seguimiento?.is_pagado_desestimacion" @click="handlePayment('desestimacion')" :disabled="processing === 'desestimacion'" class="px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-md shadow-rose-500/20">
+                            {{ processing === 'desestimacion' ? '...' : 'Registrar' }}
+                        </button>
+                        <div v-else class="text-[10px] font-bold text-slate-400">{{ formatDate(detalle?.seguimiento?.fecha_pago_desestimacion) }}</div>
+                    </td>
                 </tr>
               </tbody>
             </table>
@@ -126,7 +183,7 @@ const emit = defineEmits(['close', 'refresh'])
 
 const detalle = ref<DetallePago | null>(null)
 const loading = ref(false)
-const processing = ref<number | null>(null)
+const processing = ref<number | string | null>(null)
 
 const fetchDetalle = async () => {
     if (!props.seguimientoId) return
@@ -177,21 +234,23 @@ const isExceedingLimit = (n: number) => {
     return getPactado(1) > (detalle.value.total_comision * 0.2501)
 }
 
-const handlePayment = async (etapa: number) => {
+const handlePayment = async (etapa: number | string) => {
     if (!props.seguimientoId) return
     
-    // Alerta de pago muy adelantado (Etapa 4 vs Etapa 1 legal)
-    const legalStage = detalle.value?.seguimiento?.estado_seguimiento || 1
-    if (etapa === 4 && legalStage === 1) {
-        const { isConfirmed } = await Swal.fire({
-            title: '¿Confirmar Pago Adelantado?',
-            text: 'El abogado aún se encuentra en etapa de Presentación. ¿Está seguro de pagar la Liquidación de Ejecución?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Sí, registrar',
-            confirmButtonColor: '#10b981'
-        })
-        if (!isConfirmed) return
+    // Alerta de pago muy adelantado (Solo para etapas numéricas)
+    if (typeof etapa === 'number') {
+        const legalStage = detalle.value?.seguimiento?.estado_seguimiento || 1
+        if (etapa === 4 && legalStage === 1) {
+            const { isConfirmed } = await Swal.fire({
+                title: '¿Confirmar Pago Adelantado?',
+                text: 'El abogado aún se encuentra en etapa de Presentación. ¿Está seguro de pagar la Liquidación de Ejecución?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, registrar',
+                confirmButtonColor: '#10b981'
+            })
+            if (!isConfirmed) return
+        }
     }
 
     processing.value = etapa
