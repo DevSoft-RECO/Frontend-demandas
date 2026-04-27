@@ -5,12 +5,11 @@
 
     <div
       class="flex flex-col flex-1 h-full transition-all duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)]"
-      :class="[layoutStore.isCollapsed ? 'md:ml-20' : 'md:ml-64']"
     >
 
       <AdminHeader />
 
-      <main class="flex-1 overflow-x-hidden overflow-y-auto p-6 relative custom-scrollbar">
+      <main class="flex-1 overflow-x-hidden overflow-y-auto pt-20 pb-32 px-6 relative custom-scrollbar">
         <RouterView v-slot="{ Component }">
             <component :is="Component" />
         </RouterView>

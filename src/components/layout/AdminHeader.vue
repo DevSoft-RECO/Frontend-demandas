@@ -1,147 +1,142 @@
 <template>
   <header
-    class="sticky top-0 z-30 flex h-16 w-full items-center justify-between px-6
-           bg-white dark:bg-gray-800
-           border-b-2 border-[var(--color-verde-cope)]
-           shadow-sm transition-colors duration-300"
+    class="fixed top-4 left-6 right-6 z-50 flex h-[60px] items-center justify-between px-6
+           bg-azul-cope dark:bg-slate-900 
+           rounded-2xl border-b-2 border-verde-cope
+           shadow-[0_10px_30px_rgba(0,0,0,0.3)] transition-all duration-300"
   >
+    <!-- Left: Brand & Context -->
     <div class="flex items-center gap-4">
-
-      <!-- Mobile Sidebar Toggle -->
-      <button
-        @click="layoutStore.toggleSidebar"
-        class="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-      >
-        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
-      </button>
-
-      <!-- Desktop Sidebar Toggle -->
-      <button
-        @click="layoutStore.toggleCollapse"
-        class="hidden md:flex p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-      >
-        <svg
-            class="w-6 h-6 transition-transform duration-300"
-            :class="layoutStore.isCollapsed ? 'rotate-180' : ''"
-            fill="none" stroke="currentColor" viewBox="0 0 24 24"
-        >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
-        </svg>
-      </button>
-
-      <!-- Branding / Title -->
-      <div class="flex flex-col ml-2">
-        <h1 class="text-lg font-extrabold text-[var(--color-azul-cope)] dark:text-white uppercase tracking-tight leading-tight">
-          {{ currentRouteTitle }}
-        </h1>
-        <span class="text-[10px] font-bold text-gray-400 dark:text-gray-400 uppercase tracking-widest">
-          Sistema Centralizado
-        </span>
+      <div class="flex items-center gap-2 group cursor-pointer">
+        <div class="p-1.5 bg-white/10 rounded-lg group-hover:bg-verde-cope transition-colors duration-300">
+            <img src="@/assets/yk.png" alt="YK" class="h-5 w-5 brightness-0 invert" />
+        </div>
+        <span class="text-[12px] font-black text-white uppercase tracking-widest hidden sm:block">Yamankutx</span>
+      </div>
+      
+      <div class="h-6 w-[1px] bg-white/10 mx-1"></div>
+      
+      <div class="flex flex-col">
+          <span class="text-[8px] font-black text-verde-cope uppercase tracking-[0.2em] leading-none mb-1">Módulo Actual</span>
+          <h1 class="text-[11px] font-bold text-white uppercase tracking-tight">
+              {{ routeTitle }}
+          </h1>
       </div>
     </div>
 
-    <!-- Right Side Actions -->
-    <div class="flex items-center gap-4">
+    <!-- Center: Date Widget -->
+    <div class="hidden lg:flex items-center gap-3 px-4 py-1.5 bg-black/20 rounded-full border border-white/5">
+        <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest">{{ currentDate }}</span>
+        <div class="w-1.5 h-1.5 rounded-full bg-verde-cope animate-pulse shadow-[0_0_8px_#5aba03]"></div>
+    </div>
 
-       <!-- Theme Toggle -->
-       <button
+    <!-- Right: System Actions -->
+    <div class="flex items-center gap-4">
+      
+      <!-- Theme Selector -->
+      <button
         @click="layoutStore.toggleTheme"
-        class="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition focus:outline-none"
+        class="p-2 rounded-xl text-white/70 hover:text-verde-cope hover:bg-white/5 transition-all"
         title="Cambiar Tema"
       >
-        <svg v-if="layoutStore.isDark" class="w-6 h-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg v-if="layoutStore.isDark" class="w-5 h-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
         </svg>
-        <svg v-else class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
         </svg>
       </button>
 
-      <!-- Perfil y Logout Directo (Según Guía PKCE) -->
-      <div class="flex items-center gap-3">
-          <div class="hidden md:block text-right">
-              <p class="text-sm font-bold text-gray-700 dark:text-gray-200">{{ userName }}</p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">{{ userAgencia }}</p>
+      <!-- User Info -->
+      <div class="relative group">
+        <button
+          @click="isUserMenuOpen = !isUserMenuOpen"
+          class="flex items-center gap-3 pl-1 pr-4 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:border-verde-cope transition-all"
+        >
+          <div class="h-8 w-8 rounded-lg bg-verde-cope flex items-center justify-center text-azul-cope font-black text-[10px]">
+            {{ userInitials }}
           </div>
+          <div class="hidden md:block text-left">
+            <p class="text-[10px] font-black text-white leading-none uppercase">{{ userName }}</p>
+            <p class="text-[8px] font-bold text-verde-cope uppercase mt-1 tracking-tighter">En Línea</p>
+          </div>
+          <svg class="w-3 h-3 text-white/30 group-hover:text-verde-cope transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
 
-          <img
-              v-if="userPhoto"
-              :src="userPhoto"
-              class="h-9 w-9 rounded-full object-cover border-2 border-[var(--color-verde-cope)] shadow-sm"
-              alt="Avatar"
-          >
+        <!-- Dropdown Menu -->
+        <Transition
+          enter-active-class="transition duration-150 ease-out"
+          enter-from-class="transform scale-95 opacity-0 translate-y-1"
+          enter-to-class="transform scale-100 opacity-100 translate-y-0"
+          leave-active-class="transition duration-100 ease-in"
+          leave-from-class="transform scale-100 opacity-100 translate-y-0"
+          leave-to-class="transform scale-95 opacity-0 translate-y-1"
+        >
           <div
-              v-else
-              class="h-9 w-9 rounded-full bg-[var(--color-azul-cope)] text-white flex items-center justify-center font-bold text-sm border-2 border-[var(--color-verde-cope)]"
+            v-if="isUserMenuOpen"
+            class="absolute right-0 mt-3 w-56 origin-top-right rounded-2xl bg-azul-cope border border-white/10 shadow-2xl p-2 z-[60]"
           >
-              {{ userInitials }}
+            <div class="px-4 py-3 bg-black/20 rounded-xl mb-2">
+                <p class="text-[8px] font-black text-white/40 uppercase tracking-[0.2em] mb-1">Cuenta Activa</p>
+                <p class="text-[11px] font-bold text-white truncate">{{ userEmail }}</p>
+            </div>
+            <button
+              @click="handleReturn"
+              class="flex w-full items-center gap-3 px-4 py-2.5 text-[11px] font-black text-red-400 hover:bg-red-500 hover:text-white rounded-xl transition-all"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z" /></svg>
+              Regresar al Portal
+            </button>
           </div>
-
-          <!-- Botón Destructivo (A la vista, SIN dropdowns) -->
-          <button
-            @click="handleReturnToMother"
-            class="p-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition"
-            title="Regresar al portal"
-          >
-            <!-- Icono de Salir/Logout Seguido -->
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-          </button>
+        </Transition>
       </div>
     </div>
-
   </header>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue"
-import { useRoute } from "vue-router"
-import { useLayoutStore } from "@/stores/layout"
-import { useAuthStore } from "@/stores/auth"
-import { getAvatarUrl } from "@/utils/imageUtils"
+import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
+import { useLayoutStore } from '@/stores/layout'
+import { useAuthStore } from '@/stores/auth'
 
+const route = useRoute()
 const layoutStore = useLayoutStore()
 const authStore = useAuthStore()
-const route = useRoute()
 
-const isDropdownOpen = ref(false)
+const isUserMenuOpen = ref(false)
 
-// Datos del usuario (Protegidos contra null)
-const userName = computed(() => authStore.user?.name || "Usuario")
+const userName = computed(() => authStore.user?.name || 'Admin')
+const userEmail = computed(() => authStore.user?.email || 'admin@cooperativa.com')
 
-/**
- * TOGGLE DE BACKEND: 
- * Descomenta la línea según el backend que estés utilizando.
- */
-const userAgencia = computed(() => authStore.user?.agencia || "Sin Agencia") // BACKEND GO (Retorna String)
-// const userAgencia = computed(() => authStore.user?.agencia?.nombre || "Sin Agencia") // BACKEND LARAVEL (Retorna Objeto)
-
-const userPhoto = computed(() => getAvatarUrl(authStore.user?.avatar) || null)
-
-// Título dinámico
-const currentRouteTitle = computed(() => route.meta?.title || 'Panel')
-
-// Iniciales
 const userInitials = computed(() => {
-    return (userName.value || "U").substring(0, 2).toUpperCase()
+  return userName.value
+    .split(' ')
+    .slice(0, 2)
+    .map((n: string) => n[0])
+    .join('')
+    .toUpperCase()
 })
 
-const handleReturnToMother = () => {
-    isDropdownOpen.value = false
-    // 1. Destrucción local profunda (sessionStorage) para garantizar recarga SSO al volver
-    authStore.logoutLocal() 
-    
-    // 2. Redirección limpia a la URL visual de la Madre
-    window.location.href = import.meta.env.VITE_MOTHER_APP_URL || 'http://localhost:5173'
+const routeTitle = computed(() => {
+  return (route.meta.title as string) || 'Dashboard'
+})
+
+const currentDate = computed(() => {
+  return new Intl.DateTimeFormat('es-ES', { 
+    weekday: 'short',
+    day: 'numeric', 
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(new Date())
+})
+
+const handleReturn = () => {
+  isUserMenuOpen.value = false
+  authStore.logoutLocal()
+  window.location.href = import.meta.env.VITE_MOTHER_APP_URL || 'http://localhost:5173'
 }
-
-
-// Asegurar que tenemos datos al cargar
-onMounted(async () => {
-    if (!authStore.user) {
-        // Intentamos recuperar la sesión si existe token
-        await authStore.checkAuth()
-    }
-})
 </script>
