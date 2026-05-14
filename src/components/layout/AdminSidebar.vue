@@ -170,7 +170,7 @@ const menuItems = computed(() => {
 
     // Filtrar por permisos
     return items.filter(item => {
-        if (item.id === 'ajustes') {
+        if (item.id === 'ajustes' || item.id === 'demandas') {
             return authStore.hasRole('Super Admin') || authStore.hasPermission('acceso_total')
         }
         return true

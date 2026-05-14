@@ -71,7 +71,8 @@ const routes: RouteRecordRaw[] = [
                 name: 'demandas-lista',
                 component: DemandasListView,
                 meta: {
-                    title: 'Listado de Demandas'
+                    title: 'Listado de Demandas',
+                    permission: 'acceso_total'
                 }
             },
             {
@@ -87,7 +88,8 @@ const routes: RouteRecordRaw[] = [
                 name: 'gestion-pagos',
                 component: () => import('@/views/admin/GestionPagosView.vue'),
                 meta: {
-                    title: 'Gestión de Pagos y Liquidaciones'
+                    title: 'Gestión de Pagos y Liquidaciones',
+                    permission: 'acceso_total'
                 }
             },
             {
@@ -95,7 +97,8 @@ const routes: RouteRecordRaw[] = [
                 name: 'supervision-legal',
                 component: SupervisionLegalView,
                 meta: {
-                    title: 'Supervisión Legal de Bufetes'
+                    title: 'Supervisión Legal de Bufetes',
+                    permission: 'acceso_total'
                 }
             }
         ]
