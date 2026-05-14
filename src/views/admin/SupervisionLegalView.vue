@@ -10,14 +10,26 @@
         <p class="text-slate-500 dark:text-slate-400 text-xs font-bold mt-2 uppercase tracking-widest">Módulo de Auditoría y Control de Procesos Judiciales</p>
       </div>
       
-      <!-- Resultados Rápidos -->
-      <div class="flex items-center gap-4 bg-slate-50 dark:bg-gray-800/50 px-6 py-3 rounded-2xl border border-slate-200 dark:border-gray-700">
-        <div class="text-right">
-          <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Total Registros</p>
-          <p class="text-xl font-black text-slate-800 dark:text-white leading-none mt-1">{{ totalItems }}</p>
+      <div class="flex items-center gap-4">
+        <!-- Export Button -->
+        <button 
+          @click="exportToCSV"
+          :disabled="exporting"
+          class="flex items-center gap-2 px-5 py-3 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-gray-700 transition-all shadow-sm disabled:opacity-50 group"
+        >
+          <ArrowDownTrayIcon class="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
+          {{ exporting ? 'Generando...' : 'Exportar CSV' }}
+        </button>
+
+        <!-- Resultados Rápidos -->
+        <div class="flex items-center gap-4 bg-slate-50 dark:bg-gray-800/50 px-6 py-3 rounded-2xl border border-slate-200 dark:border-gray-700 shadow-sm">
+          <div class="text-right">
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Total Registros</p>
+            <p class="text-xl font-black text-slate-800 dark:text-white leading-none mt-1">{{ totalItems }}</p>
+          </div>
+          <div class="w-px h-8 bg-slate-200 dark:border-gray-700"></div>
+          <SparklesIcon class="w-5 h-5 text-emerald-500" />
         </div>
-        <div class="w-px h-8 bg-slate-200 dark:border-gray-700"></div>
-        <SparklesIcon class="w-5 h-5 text-emerald-500" />
       </div>
     </div>
 
@@ -150,7 +162,7 @@
               </td>
               <td class="px-6 py-5">
                 <div class="flex items-center gap-2">
-                  <div class="w-1.5 h-1.5 rounded-full" :class="s.estado_seguimiento >= 5 || s.estado_legal_demanda === 'Desistido' ? 'bg-blue-500 shadow-sm shadow-blue-500/20' : 'bg-emerald-500'"></div>
+                  <div class="w-1.5 h-1.5 rounded-full" :class="s.estado_seguimiento >= 5 || s.estado_legal_demanda === 'Desistido' ? 'bg-blue-500 shadow-sm shadow-blue-500/30' : 'bg-emerald-500'"></div>
                   <span class="text-[10px] font-black uppercase" :class="s.estado_legal_demanda === 'Desistido' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-400'">
                     {{ s.estado_legal_demanda === 'Desistido' ? 'Finalización Anticipada' : getEtapaName(s.estado_seguimiento) }}
                   </span>
@@ -235,13 +247,15 @@ import {
   ScaleIcon,
   ClockIcon,
   CheckBadgeIcon,
-  ClipboardDocumentCheckIcon
+  ClipboardDocumentCheckIcon,
+  ArrowDownTrayIcon
 } from '@heroicons/vue/24/outline'
 
 // Data
 const seguimientos = ref<any[]>([])
 const bufetes = ref<any[]>([])
 const loading = ref(true)
+const exporting = ref(false)
 const selectedSeguimiento = ref<any>(null)
 const isModalOpen = ref(false)
 
@@ -292,6 +306,31 @@ const fetchData = async () => {
     console.error('Error fetching data:', error)
   } finally {
     loading.value = false
+  }
+}
+
+const exportToCSV = async () => {
+  exporting.value = true
+  try {
+    const response = await api.get('/seguimientos/export', {
+      params: {
+        abogadoId: selectedAbogadoId.value,
+        status: selectedStatus.value === 'Todos' ? '' : selectedStatus.value
+      },
+      responseType: 'blob'
+    })
+
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `Reporte_Seguimiento_Legal_${new Date().toISOString().slice(0,10)}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  } catch (error) {
+    console.error('Error exporting CSV:', error)
+  } finally {
+    exporting.value = false
   }
 }
 
