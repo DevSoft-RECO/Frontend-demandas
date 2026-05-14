@@ -11,6 +11,7 @@ import UnauthorizedView from '@/views/UnauthorizedView.vue'
 import BufetesView from '@/views/BufetesView.vue'
 import PresetsView from '@/views/presets/PresetsView.vue'
 import DemandasListView from '@/views/demandas/DemandasListView.vue'
+import SupervisionLegalView from '@/views/admin/SupervisionLegalView.vue'
 
 const routes: RouteRecordRaw[] = [
     // 1. RUTAS PÚBLICAS
@@ -85,6 +86,14 @@ const routes: RouteRecordRaw[] = [
                 component: () => import('@/views/admin/GestionPagosView.vue'),
                 meta: {
                     title: 'Gestión de Pagos y Liquidaciones'
+                }
+            },
+            {
+                path: 'supervision-legal',
+                name: 'supervision-legal',
+                component: SupervisionLegalView,
+                meta: {
+                    title: 'Supervisión Legal de Bufetes'
                 }
             }
         ]

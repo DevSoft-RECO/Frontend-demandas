@@ -82,7 +82,7 @@
                   <p class="text-xs font-bold uppercase tracking-tighter">Sin registros en esta etapa</p>
                 </div>
                 
-                <div v-for="(entry, idx) in bitacora" :key="idx" class="flex gap-4 group animate-in fade-in slide-in-from-left-4" :style="{ animationDelay: idx * 50 + 'ms' }">
+                <div v-for="entry in bitacora" :key="entry.id" class="flex gap-4">
                     <div class="flex flex-col items-center">
                         <div class="w-2 h-2 rounded-full bg-emerald-500 mt-2 ring-4 ring-emerald-500/20"></div>
                         <div class="flex-1 w-px bg-gray-200 dark:bg-gray-700 my-1 group-last:hidden"></div>
@@ -132,7 +132,7 @@
                   </button>
 
                   <button 
-                    v-if="seguimiento?.estado_legal_demanda === 'Vigente'"
+                    v-if="!readonly && seguimiento?.estado_legal_demanda === 'Vigente'"
                     @click="confirmDesistir"
                     class="w-full flex items-center justify-between p-4 bg-white dark:bg-gray-800 hover:bg-red-600 hover:text-white rounded-2xl border-2 border-red-100 dark:border-red-900/30 group transition-all duration-300 shadow-sm"
                   >
@@ -141,7 +141,7 @@
                   </button>
                 </div>
 
-                <div class="mt-6 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl text-[10px] font-medium text-emerald-800 dark:text-emerald-300 leading-relaxed italic">
+                <div v-if="!readonly" class="mt-6 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl text-[10px] font-medium text-emerald-800 dark:text-emerald-300 leading-relaxed italic">
                   * Al finalizar una etapa, esta se bloquea permanentemente para edición y el proceso avanza a la siguiente fase legal.
                 </div>
               </div>
@@ -158,10 +158,13 @@ import { ref, computed, watch } from 'vue'
 import { seguimientoAbogadoService } from '@/services/seguimientoAbogadoService'
 import Swal from 'sweetalert2'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   isOpen: boolean
   seguimiento: any
-}>()
+  readonly?: boolean
+}>(), {
+  readonly: false
+})
 
 const emit = defineEmits(['close', 'refresh'])
 
@@ -184,8 +187,12 @@ const stepperProgress = computed(() => {
     return (current - 1) * 33.33
 })
 
-const isLocked = computed(() => activeTab.value < (props.seguimiento?.estado_seguimiento || 1))
+const isLocked = computed(() => {
+    if (props.readonly) return true
+    return activeTab.value < (props.seguimiento?.estado_seguimiento || 1)
+})
 const canEdit = computed(() => {
+    if (props.readonly) return false
     return activeTab.value === props.seguimiento?.estado_seguimiento && 
            props.seguimiento?.estado_legal_demanda === 'Vigente'
 })
