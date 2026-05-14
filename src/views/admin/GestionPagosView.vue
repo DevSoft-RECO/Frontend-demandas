@@ -102,7 +102,7 @@
     </div>
 
     <!-- Main Table -->
-    <div class="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-3xl shadow-sm overflow-hidden mb-10">
+    <div class="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-3xl shadow-sm overflow-hidden mb-6">
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
           <thead>
@@ -168,6 +168,44 @@
       </div>
     </div>
 
+    <!-- Paginación Corporativa -->
+    <div class="flex flex-col md:flex-row items-center justify-between gap-6 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 p-6 rounded-3xl mb-10 shadow-sm">
+      <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+        Mostrando <span class="text-slate-900 dark:text-white">{{ (currentPage - 1) * pageSize + 1 }}</span> 
+        a <span class="text-slate-900 dark:text-white">{{ Math.min(currentPage * pageSize, totalRecords) }}</span> 
+        de <span class="text-slate-900 dark:text-white">{{ totalRecords }}</span> registros
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button 
+          @click="currentPage > 1 && (currentPage--)" 
+          :disabled="currentPage === 1"
+          class="p-2.5 bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 transition-all disabled:opacity-30 disabled:cursor-not-allowed group"
+        >
+          <ChevronLeftIcon class="w-4 h-4 text-slate-600 dark:text-slate-400 group-hover:text-emerald-600" />
+        </button>
+
+        <div class="flex items-center gap-1">
+          <button 
+            v-for="page in visiblePages" :key="page"
+            @click="typeof page === 'number' && (currentPage = page)"
+            class="min-w-[40px] h-10 flex items-center justify-center rounded-xl text-[10px] font-black transition-all"
+            :class="currentPage === page ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30' : 'bg-slate-50 dark:bg-gray-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-gray-700'"
+          >
+            {{ page }}
+          </button>
+        </div>
+
+        <button 
+          @click="currentPage < totalPages && (currentPage++)" 
+          :disabled="currentPage === totalPages"
+          class="p-2.5 bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 transition-all disabled:opacity-30 disabled:cursor-not-allowed group"
+        >
+          <ChevronRightIcon class="w-4 h-4 text-slate-600 dark:text-slate-400 group-hover:text-emerald-600" />
+        </button>
+      </div>
+    </div>
+
     <!-- Modal de Liquidación -->
     <LiquidacionModal 
       :is-open="isModalOpen"
@@ -188,7 +226,9 @@ import {
   ChevronDownIcon, 
   MagnifyingGlassIcon, 
   BanknotesIcon,
-  ArrowDownTrayIcon
+  ArrowDownTrayIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon
 } from '@heroicons/vue/24/outline'
 
 const pagosStore = usePagosStore()
@@ -198,6 +238,12 @@ const allSeguimientos = ref<any[]>([])
 const bufetes = ref<any[]>([])
 const isModalOpen = ref(false)
 const selectedId = ref<number | null>(null)
+
+// Paginación
+const currentPage = ref(1)
+const pageSize = ref(10)
+const totalRecords = ref(0)
+const totalPages = ref(0)
 
 // Filtros
 const selectedAbogadoId = ref<number | null>(null)
@@ -222,14 +268,17 @@ const fetchAllData = async () => {
         const bufRes = await api.get('/bufetes')
         bufetes.value = bufRes.data
 
-        // Cargamos seguimientos (usando el nuevo formato paginado pero con pageSize alto para control local si se desea)
+        // Cargamos seguimientos con paginación
         const response = await api.get('/seguimientos', {
             params: { 
-                pageSize: 1000,
+                page: currentPage.value,
+                pageSize: pageSize.value,
                 abogadoId: selectedAbogadoId.value || 0
             }
         })
         allSeguimientos.value = response.data.data || []
+        totalRecords.value = response.data.total || 0
+        totalPages.value = response.data.totalPages || 0
     } catch (error) {
         console.error(error)
     } finally {
@@ -268,7 +317,33 @@ const exportToCSV = async () => {
     }
 }
 
-// Totales filtrados
+// Lógica de páginas visibles
+const visiblePages = computed(() => {
+  const pages: (number | string)[] = []
+  const maxVisible = 5
+  
+  if (totalPages.value <= maxVisible) {
+    for (let i = 1; i <= totalPages.value; i++) pages.push(i)
+  } else {
+    pages.push(1)
+    if (currentPage.value > 3) pages.push('...')
+    
+    let start = Math.max(2, currentPage.value - 1)
+    let end = Math.min(totalPages.value - 1, currentPage.value + 1)
+    
+    if (currentPage.value <= 3) end = 4
+    if (currentPage.value >= totalPages.value - 2) start = totalPages.value - 3
+    
+    for (let i = start; i <= end; i++) pages.push(i)
+    
+    if (currentPage.value < totalPages.value - 2) pages.push('...')
+    pages.push(totalPages.value)
+  }
+  return pages
+})
+
+// Totales filtrados (Nota: estos totales solo reflejan la PÁGINA ACTUAL si los datos vienen paginados del servidor)
+// Si necesitas los totales de TODO el bufete, necesitarías un endpoint adicional o recibirlos en la metadata
 const totalPagadoFiltrado = computed(() => {
     return filteredSeguimientos.value.reduce((acc, s) => {
         let pagado = 0
@@ -286,6 +361,7 @@ const totalPendienteFiltrado = computed(() => {
 
 const selectAbogado = (abogado: any | null) => {
   selectedAbogadoId.value = abogado ? abogado.id : null
+  currentPage.value = 1 // Reset a primera página al cambiar filtro
   isFilterOpen.value = false
 }
 
@@ -322,7 +398,7 @@ const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('es-GT', { style: 'currency', currency: 'GTQ' }).format(val)
 }
 
-watch(selectedAbogadoId, () => {
+watch([selectedAbogadoId, currentPage], () => {
     fetchAllData()
 })
 
