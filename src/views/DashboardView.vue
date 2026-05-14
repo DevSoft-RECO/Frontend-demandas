@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-8 animate-in fade-in duration-700">
+  <div v-if="canSeeDashboard" class="space-y-8 animate-in fade-in duration-700">
     
     <!-- Welcome Header -->
     <div class="relative overflow-hidden bg-gradient-to-r from-azul-cope to-slate-900 rounded-[2rem] p-8 text-white shadow-2xl">
@@ -160,6 +160,57 @@
     </div>
 
   </div>
+
+  <!-- Pantalla de Bienvenida Genérica para usuarios sin permisos de Dashboard -->
+  <div v-else class="min-h-[70vh] flex flex-col items-center justify-center p-8 animate-in fade-in zoom-in duration-1000">
+    <div class="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-[3rem] p-12 text-center shadow-2xl border border-slate-100 dark:border-white/5 overflow-hidden">
+        <!-- Background decorative elements -->
+        <div class="absolute top-0 right-0 w-64 h-64 bg-verde-cope/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
+        <div class="absolute bottom-0 left-0 w-64 h-64 bg-azul-cope/5 rounded-full blur-3xl -ml-32 -mb-32"></div>
+        
+        <div class="relative z-10 flex flex-col items-center space-y-8">
+            <div class="w-24 h-24 bg-gradient-to-br from-azul-cope to-slate-800 rounded-3xl flex items-center justify-center shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500">
+                <svg class="w-12 h-12 text-verde-cope" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+            </div>
+            
+            <div class="space-y-4">
+                <h1 class="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+                    ¡Hola de nuevo, <span class="text-transparent bg-clip-text bg-gradient-to-r from-azul-cope to-verde-cope">{{ userName }}</span>!
+                </h1>
+                <p class="text-lg text-slate-500 dark:text-slate-400 font-medium max-w-2xl mx-auto">
+                    Has ingresado correctamente al sistema de <span class="font-bold text-azul-cope dark:text-indigo-400">Yaman Kutx Demandas</span>. 
+                    Utiliza el menú lateral para gestionar los procesos y bufetes asignados.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-8">
+                <div class="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-white/5">
+                    <div class="w-10 h-10 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center shadow-sm mx-auto mb-4">
+                        <svg class="w-5 h-5 text-azul-cope" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                    </div>
+                    <p class="text-xs font-black uppercase tracking-widest text-slate-400">Eficiencia</p>
+                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200 mt-1">Gestión Centralizada</p>
+                </div>
+                <div class="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-white/5">
+                    <div class="w-10 h-10 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center shadow-sm mx-auto mb-4">
+                        <svg class="w-5 h-5 text-azul-cope" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                    </div>
+                    <p class="text-xs font-black uppercase tracking-widest text-slate-400">Seguridad</p>
+                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200 mt-1">Acceso Protegido</p>
+                </div>
+                <div class="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-white/5">
+                    <div class="w-10 h-10 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center shadow-sm mx-auto mb-4">
+                        <svg class="w-5 h-5 text-azul-cope" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                    </div>
+                    <p class="text-xs font-black uppercase tracking-widest text-slate-400">Velocidad</p>
+                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200 mt-1">Respuesta Ágil</p>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -169,6 +220,10 @@ import { dashboardService, type DashboardStats } from '@/services/dashboardServi
 
 const authStore = useAuthStore()
 const userName = computed(() => authStore.user?.name || 'Administrador')
+
+const canSeeDashboard = computed(() => {
+    return authStore.hasRole('Super Admin') || authStore.hasPermission('acceso_total')
+})
 
 const kpis = ref([
     { 
@@ -250,7 +305,11 @@ const fetchStats = async () => {
     }
 }
 
-onMounted(fetchStats)
+onMounted(() => {
+    if (canSeeDashboard.value) {
+        fetchStats()
+    }
+})
 </script>
 
 <style scoped>
