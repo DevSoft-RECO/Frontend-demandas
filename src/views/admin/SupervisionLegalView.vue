@@ -150,9 +150,9 @@
               </td>
               <td class="px-6 py-5">
                 <div class="flex items-center gap-2">
-                  <div class="w-1.5 h-1.5 rounded-full" :class="s.estado_seguimiento >= 5 ? 'bg-blue-500' : 'bg-emerald-500'"></div>
-                  <span class="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400">
-                    {{ getEtapaName(s.estado_seguimiento) }}
+                  <div class="w-1.5 h-1.5 rounded-full" :class="s.estado_seguimiento >= 5 || s.estado_legal_demanda === 'Desistido' ? 'bg-blue-500 shadow-sm shadow-blue-500/20' : 'bg-emerald-500'"></div>
+                  <span class="text-[10px] font-black uppercase" :class="s.estado_legal_demanda === 'Desistido' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-400'">
+                    {{ s.estado_legal_demanda === 'Desistido' ? 'Finalización Anticipada' : getEtapaName(s.estado_seguimiento) }}
                   </span>
                 </div>
               </td>
@@ -323,6 +323,7 @@ const statusDotClass = (status: string) => {
 const statusClass = (s: string) => {
   if (s === 'Vigente') return 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800'
   if (s === 'Finalizado') return 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800'
+  if (s === 'Desistido') return 'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800'
   return 'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800'
 }
 

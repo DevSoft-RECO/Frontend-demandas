@@ -87,7 +87,7 @@
                     class="w-2 h-2 rounded-full" 
                     :class="s.estado_seguimiento >= 5 || s.estado_legal_demanda === 'Desistido' ? 'bg-blue-500 shadow-sm shadow-blue-500/30' : 'bg-emerald-500 animate-pulse shadow-sm shadow-emerald-500/30'"
                 ></div>
-                <span class="text-xs font-black uppercase tracking-widest text-slate-700 dark:text-slate-300">
+                <span class="text-xs font-black uppercase tracking-widest" :class="s.estado_legal_demanda === 'Desistido' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300'">
                   {{ s.estado_legal_demanda === 'Desistido' ? 'Finalización Anticipada' : getEtapaName(s.estado_seguimiento) }}
                 </span>
               </div>
@@ -256,7 +256,8 @@ const getEtapaName = (id: number) => {
 
 const statusClass = (s: string) => {
   if (s === 'Vigente') return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-  if (['Finalizado', 'Desistido'].includes(s)) return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+  if (s === 'Finalizado') return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+  if (s === 'Desistido') return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
   return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
 }
 
