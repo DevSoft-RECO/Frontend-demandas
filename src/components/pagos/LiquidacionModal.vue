@@ -10,6 +10,10 @@
               Liquidación de Desembolso
             </h3>
             <p class="text-slate-400 text-sm font-medium mt-1">Crédito: {{ detalle?.seguimiento?.demanda?.no_credito }} | Deudor: {{ detalle?.seguimiento?.demanda?.deudor }}</p>
+            <div v-if="detalle?.seguimiento?.estado_legal_demanda === 'Desistido'" class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 bg-red-500/20 text-red-400 rounded-lg border border-red-500/30">
+                <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                <span class="text-[9px] font-black uppercase tracking-widest">Caso Desistido / Liquidación Especial</span>
+            </div>
           </div>
           <button @click="$emit('close')" class="p-2 hover:bg-white/10 rounded-full transition">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -84,7 +88,7 @@
                       <button 
                         v-if="!isPaid(n)"
                         @click="handlePayment(n)"
-                        :disabled="isExceedingLimit(n) || processing === n"
+                        :disabled="processing === n || (detalle?.seguimiento?.estado_legal_demanda === 'Desistido' && n >= detalle?.seguimiento?.estado_seguimiento)"
                         class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-md shadow-emerald-500/20 disabled:opacity-30 disabled:cursor-not-allowed"
                       >
                         {{ processing === n ? '...' : 'Registrar' }}
@@ -148,15 +152,6 @@
                 </tr>
               </tbody>
             </table>
-          </div>
-
-          <!-- Alert for Stage 1 -->
-          <div v-if="isExceedingLimit(1)" class="p-4 bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-100 dark:border-red-900/30 flex items-start gap-3">
-            <svg class="w-6 h-6 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-            <div>
-                <p class="text-xs font-black text-red-800 dark:text-red-300 uppercase tracking-tight">Bloqueo de Seguridad: Etapa 1</p>
-                <p class="text-xs text-red-700 dark:text-red-400 mt-1">El monto pactado para la etapa 1 excede el 25% de la comisión total permitida por normativa. Verifique los presets o autorice pago único.</p>
-            </div>
           </div>
         </div>
 
@@ -225,13 +220,6 @@ const isAdvised = (n: number) => {
     if (!detalle.value) return false
     const legalStage = detalle.value.seguimiento.estado_seguimiento || 1
     return n > legalStage
-}
-
-const isExceedingLimit = (n: number) => {
-    if (n !== 1 || !detalle.value) return false
-    const s = detalle.value.seguimiento
-    if (s.pago_unico > 0) return false // No aplica si es pago único
-    return getPactado(1) > (detalle.value.total_comision * 0.2501)
 }
 
 const handlePayment = async (etapa: number | string) => {

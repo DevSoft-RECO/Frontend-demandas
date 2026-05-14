@@ -108,8 +108,8 @@
           <thead>
             <tr class="bg-slate-50 dark:bg-gray-900/50 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-200 dark:border-gray-700">
               <th class="px-8 py-6">Crédito / Deudor</th>
-              <th class="px-8 py-6">Bufete Responsable</th>
-              <th class="px-8 py-6">Estado Pagos</th>
+              <th class="px-8 py-6">Etapa / Estado</th>
+              <th class="px-8 py-6">Progreso Pagos</th>
               <th class="px-8 py-6">Saldo Pendiente</th>
               <th class="px-8 py-6 text-right">Acciones</th>
             </tr>
@@ -132,27 +132,40 @@
               <td class="px-8 py-6">
                 <p class="text-sm font-black text-slate-800 dark:text-white">{{ s.demanda?.no_credito || s.demanda?.no_credito_t24 || 'N/A' }}</p>
                 <p class="text-[10px] font-bold text-slate-500 uppercase mt-0.5 truncate max-w-[200px]">{{ s.demanda?.no_juicio || s.demanda?.deudor || 'No disponible' }}</p>
+                <p class="text-[9px] font-black text-indigo-600 uppercase mt-1">{{ s.abogado?.nombre || 'Bufete' }}</p>
               </td>
               <td class="px-8 py-6">
                 <div class="flex items-center gap-2">
-                  <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-gray-700 flex items-center justify-center text-[10px] font-black text-slate-400">
-                    {{ (s.abogado?.nombre || 'B').charAt(0) }}
-                  </div>
-                  <p class="text-[11px] font-black text-slate-700 dark:text-slate-300 uppercase truncate max-w-[150px]">{{ s.abogado?.nombre || 'Bufete' }}</p>
+                    <div class="w-1.5 h-1.5 rounded-full" :class="s.estado_legal_demanda === 'Vigente' ? 'bg-emerald-500 animate-pulse' : (s.estado_legal_demanda === 'Desistido' ? 'bg-red-500' : 'bg-blue-500')"></div>
+                    <p class="text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase">
+                        {{ s.estado_legal_demanda === 'Desistido' ? 'Finalización Anticipada' : getEtapaLabel(s.estado_seguimiento) }}
+                    </p>
                 </div>
+                <p class="text-[9px] font-bold text-slate-400 uppercase mt-1">{{ s.estado_legal_demanda }}</p>
               </td>
               <td class="px-8 py-6">
                 <div class="flex items-center gap-1.5">
                   <div 
                     v-for="n in 4" :key="n"
                     class="w-6 h-1.5 rounded-full"
-                    :class="isStagePaid(s, n) ? 'bg-emerald-500 shadow-sm shadow-emerald-500/30' : 'bg-slate-200 dark:bg-gray-700'"
+                    :class="[
+                        isStagePaid(s, n) ? 'bg-emerald-500 shadow-sm shadow-emerald-500/30' : 'bg-slate-200 dark:bg-gray-700',
+                        (s.estado_legal_demanda === 'Desistido' && !isStagePaid(s, n) && (s[`pago_pactado_${n}`] === 0 || n > s.estado_seguimiento)) ? 'opacity-20' : ''
+                    ]"
                   ></div>
                 </div>
-                <p class="text-[9px] font-black text-slate-400 uppercase mt-2">{{ countPaid(s) }} de 4 Etapas Cubiertas</p>
+                <div class="flex items-center gap-2 mt-2">
+                    <p class="text-[9px] font-black text-slate-400 uppercase">{{ countPaid(s) }} / 4</p>
+                    <div v-if="s.monto_desestimacion > 0" class="px-1.5 py-0.5 rounded bg-rose-50 dark:bg-rose-900/20 text-rose-600 text-[8px] font-black uppercase">
+                        {{ s.is_pagado_desestimacion ? 'Desist. Pagado' : 'Desist. Pendiente' }}
+                    </div>
+                </div>
               </td>
               <td class="px-8 py-6">
-                <p class="text-sm font-black text-slate-800 dark:text-white">{{ formatCurrency(calculateSaldo(s)) }}</p>
+                <p class="text-sm font-black" :class="calculateSaldo(s) > 0 ? 'text-slate-800 dark:text-white' : 'text-emerald-600'">
+                    {{ formatCurrency(calculateSaldo(s)) }}
+                </p>
+                <p v-if="calculateSaldo(s) === 0" class="text-[9px] font-black text-emerald-500 uppercase">Liquidado</p>
               </td>
               <td class="px-8 py-6 text-right">
                 <button 
@@ -264,11 +277,9 @@ const fetchAllData = async () => {
     loading.value = true
     try {
         await pagosStore.fetchResumen()
-        // Cargamos bufetes para el selector
         const bufRes = await api.get('/bufetes')
         bufetes.value = bufRes.data
 
-        // Cargamos seguimientos con paginación
         const response = await api.get('/seguimientos', {
             params: { 
                 page: currentPage.value,
@@ -317,33 +328,25 @@ const exportToCSV = async () => {
     }
 }
 
-// Lógica de páginas visibles
 const visiblePages = computed(() => {
   const pages: (number | string)[] = []
   const maxVisible = 5
-  
   if (totalPages.value <= maxVisible) {
     for (let i = 1; i <= totalPages.value; i++) pages.push(i)
   } else {
     pages.push(1)
     if (currentPage.value > 3) pages.push('...')
-    
     let start = Math.max(2, currentPage.value - 1)
     let end = Math.min(totalPages.value - 1, currentPage.value + 1)
-    
     if (currentPage.value <= 3) end = 4
     if (currentPage.value >= totalPages.value - 2) start = totalPages.value - 3
-    
     for (let i = start; i <= end; i++) pages.push(i)
-    
     if (currentPage.value < totalPages.value - 2) pages.push('...')
     pages.push(totalPages.value)
   }
   return pages
 })
 
-// Totales filtrados (Nota: estos totales solo reflejan la PÁGINA ACTUAL si los datos vienen paginados del servidor)
-// Si necesitas los totales de TODO el bufete, necesitarías un endpoint adicional o recibirlos en la metadata
 const totalPagadoFiltrado = computed(() => {
     return filteredSeguimientos.value.reduce((acc, s) => {
         let pagado = 0
@@ -351,6 +354,8 @@ const totalPagadoFiltrado = computed(() => {
         if (s.is_pagado_2) pagado += (s.pago_pactado_2 || 0)
         if (s.is_pagado_3) pagado += (s.pago_pactado_3 || 0)
         if (s.is_pagado_4) pagado += (s.pago_pactado_4 || 0)
+        if (s.is_pagado_desestimacion) pagado += (s.monto_desestimacion || 0)
+        if (s.is_pagado_unico) pagado += (s.pago_unico || 0)
         return acc + pagado
     }, 0)
 })
@@ -361,7 +366,7 @@ const totalPendienteFiltrado = computed(() => {
 
 const selectAbogado = (abogado: any | null) => {
   selectedAbogadoId.value = abogado ? abogado.id : null
-  currentPage.value = 1 // Reset a primera página al cambiar filtro
+  currentPage.value = 1 
   isFilterOpen.value = false
 }
 
@@ -376,13 +381,33 @@ const countPaid = (s: any) => {
 }
 
 const calculateSaldo = (s: any) => {
-    const total = (s.pago_pactado_1 || 0) + (s.pago_pactado_2 || 0) + (s.pago_pactado_3 || 0) + (s.pago_pactado_4 || 0)
-    let pagado = 0
-    if (s.is_pagado_1) pagado += (s.pago_pactado_1 || 0)
-    if (s.is_pagado_2) pagado += (s.pago_pactado_2 || 0)
-    if (s.is_pagado_3) pagado += (s.pago_pactado_3 || 0)
-    if (s.is_pagado_4) pagado += (s.pago_pactado_4 || 0)
-    return total - pagado
+    // Si es pago único y no está pagado, el saldo es el pago único
+    if (s.pago_unico > 0 && !s.is_pagado_unico) return s.pago_unico
+    if (s.pago_unico > 0 && s.is_pagado_unico) return 0
+
+    // Suma de pactados
+    const totalPactado = (s.pago_pactado_1 || 0) + (s.pago_pactado_2 || 0) + (s.pago_pactado_3 || 0) + (s.pago_pactado_4 || 0)
+    let pagadoPactado = 0
+    if (s.is_pagado_1) pagadoPactado += (s.pago_pactado_1 || 0)
+    if (s.is_pagado_2) pagadoPactado += (s.pago_pactado_2 || 0)
+    if (s.is_pagado_3) pagadoPactado += (s.pago_pactado_3 || 0)
+    if (s.is_pagado_4) pagadoPactado += (s.pago_pactado_4 || 0)
+
+    let saldo = totalPactado - pagadoPactado
+
+    // Desestimación
+    if (s.estado_legal_demanda === 'Desistido') {
+        if (!s.is_pagado_desestimacion) {
+            saldo += (s.monto_desestimacion || 0)
+        }
+    }
+
+    return Math.max(0, saldo)
+}
+
+const getEtapaLabel = (id: number) => {
+    const stages = { 1: 'Presentación', 2: 'Admisión', 3: 'Notificación', 4: 'Ejecución', 5: 'Finalizado' }
+    return stages[id as keyof typeof stages] || 'Iniciado'
 }
 
 const openLiquidacion = (id: number) => {
