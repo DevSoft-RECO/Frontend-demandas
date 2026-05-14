@@ -90,10 +90,10 @@
                     <div class="flex-1 bg-gray-50 dark:bg-gray-900/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
                         <div class="flex justify-between items-center mb-2">
                             <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">{{ formatDate(entry.fecha) }}</span>
-                            <a v-if="entry.documento" :href="getDocumentUrl(entry.documento)" target="_blank" class="px-3 py-1 bg-white dark:bg-gray-800 border border-emerald-200 dark:border-emerald-800 rounded-lg text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition flex items-center gap-1.5 shadow-sm">
+                            <button v-if="entry.documento" @click.prevent="openSignedUrl(entry.documento)" class="px-3 py-1 bg-white dark:bg-gray-800 border border-emerald-200 dark:border-emerald-800 rounded-lg text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition flex items-center gap-1.5 shadow-sm">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
                                 Ver Evidencia
-                            </a>
+                            </button>
                         </div>
                         <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{{ entry.comentario }}</p>
                     </div>
@@ -272,9 +272,27 @@ const clearFile = () => {
     }
 }
 
-const getDocumentUrl = (path: string) => {
-    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001'
-    return `${baseUrl}${path}`
+const openSignedUrl = async (path: string) => {
+    // Abrir la pestaña inmediatamente para evitar el bloqueo del navegador por pérdida de contexto de usuario
+    const newWindow = window.open('', '_blank')
+    
+    try {
+        const response = await seguimientoAbogadoService.getSignedUrl(path)
+        if (response && response.url) {
+            if (newWindow) {
+                newWindow.location.href = response.url
+            } else {
+                // Fallback si por alguna razón el primer window.open falló
+                window.open(response.url, '_blank')
+            }
+        } else {
+            if (newWindow) newWindow.close()
+            Swal.fire('Error', 'No se pudo generar el enlace de acceso', 'error')
+        }
+    } catch (error) {
+        if (newWindow) newWindow.close()
+        Swal.fire('Error', 'No se pudo obtener el enlace seguro del documento', 'error')
+    }
 }
 
 const confirmAvanzar = async () => {

@@ -23,6 +23,13 @@ export const seguimientoAbogadoService = {
         return response.data;
     },
 
+    async getSignedUrl(path: string) {
+        const response = await api.get(`/evidencias/signed`, {
+            params: { path }
+        });
+        return response.data;
+    },
+
     async avanzarEtapa(id: number) {
         const response = await api.patch(`/seguimientos/${id}/avanzar`);
         return response.data;
