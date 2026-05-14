@@ -53,7 +53,8 @@ const routes: RouteRecordRaw[] = [
                 name: 'bufetes',
                 component: BufetesView,
                 meta: {
-                    title: 'Bufetes'
+                    title: 'Bufetes',
+                    permission: 'acceso_total'
                 }
             },
             {
@@ -61,7 +62,8 @@ const routes: RouteRecordRaw[] = [
                 name: 'presets',
                 component: PresetsView,
                 meta: {
-                    title: 'Configuración de Presets'
+                    title: 'Configuración de Presets',
+                    permission: 'acceso_total'
                 }
             },
             {

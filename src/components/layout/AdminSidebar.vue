@@ -93,8 +93,10 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useLayoutStore } from '@/stores/layout'
+import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
+const authStore = useAuthStore()
 const layoutStore = useLayoutStore()
 const openGroups = ref<string[]>([])
 const dockRef = ref<HTMLElement | null>(null)
@@ -130,7 +132,7 @@ onUnmounted(() => {
 const isActive = (path: string) => route.path === path
 
 const menuItems = computed(() => {
-    return [
+    const items = [
         {
             id: 'home',
             label: 'Dashboard',
@@ -165,6 +167,14 @@ const menuItems = computed(() => {
             ]
         }
     ]
+
+    // Filtrar por permisos
+    return items.filter(item => {
+        if (item.id === 'ajustes') {
+            return authStore.hasRole('Super Admin') || authStore.hasPermission('acceso_total')
+        }
+        return true
+    })
 })
 </script>
 
