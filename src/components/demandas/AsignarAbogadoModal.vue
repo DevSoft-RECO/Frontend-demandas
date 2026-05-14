@@ -81,14 +81,14 @@
                     <label class="block text-[10px] font-black uppercase text-gray-500 tracking-widest mb-1">Pago Único</label>
                     <div class="relative">
                         <span class="absolute left-3 top-2 text-gray-400">Q</span>
-                        <input v-model.number="form.pago_unico" type="number" step="0.01" class="form-input !pl-8" placeholder="0.00">
+                        <input v-model.number="form.pago_unico" type="number" step="1" class="form-input !pl-8" placeholder="0" @input="roundField('pago_unico')">
                     </div>
                 </div>
                 <div>
                     <label class="block text-[10px] font-black uppercase text-gray-500 tracking-widest mb-1">Monto Desestimación</label>
                     <div class="relative">
                         <span class="absolute left-3 top-2 text-gray-400">Q</span>
-                        <input v-model.number="form.monto_desestimacion" type="number" step="0.01" class="form-input !pl-8" placeholder="0.00">
+                        <input v-model.number="form.monto_desestimacion" type="number" step="1" class="form-input !pl-8" placeholder="0" @input="roundField('monto_desestimacion')">
                     </div>
                 </div>
             </div>
@@ -97,15 +97,15 @@
             <div v-if="form.id_preset > 0" class="mt-4 animate-in fade-in slide-in-from-top-2">
                 <h4 class="text-xs font-black text-emerald-600 uppercase tracking-widest mb-3 flex items-center gap-2">
                     <span class="w-2 h-2 bg-emerald-600 rounded-full"></span>
-                    Configuración de Pagos Pactados
+                    Configuración de Pagos Pactados (Valores Enteros)
                 </h4>
                 <div class="bg-gray-50 dark:bg-gray-900/40 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
                     <table class="w-full text-sm">
                         <thead class="bg-gray-100 dark:bg-gray-800">
                             <tr class="text-left text-[10px] font-black uppercase text-gray-500">
                                 <th class="px-4 py-2">Etapa</th>
-                                <th class="px-4 py-2 text-right">Sugerido</th>
-                                <th class="px-4 py-2 text-right">Pactado (Editable)</th>
+                                <th class="px-4 py-2 text-right">Sugerido (Redondeado)</th>
+                                <th class="px-4 py-2 text-right">Pactado (Solo Enteros)</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -119,8 +119,10 @@
                                     <input 
                                         v-model.number="form.pago_pactado_1" 
                                         type="number" 
+                                        step="1"
                                         class="w-32 px-2 py-1 bg-white dark:bg-gray-700 border rounded text-right outline-none transition"
                                         :class="form.pago_pactado_1 > limitStage1 ? 'border-red-500 focus:ring-2 focus:ring-red-500 text-red-600' : 'border-emerald-200 focus:ring-2 focus:ring-emerald-500'"
+                                        @input="roundField('pago_pactado_1')"
                                     >
                                 </td>
                             </tr>
@@ -128,21 +130,21 @@
                                 <td class="px-4 py-3 font-medium">2. Admisión</td>
                                 <td class="px-4 py-3 text-right text-gray-500">{{ formatCurrency(form.sugerido2) }}</td>
                                 <td class="px-4 py-3 text-right">
-                                    <input v-model.number="form.pago_pactado_2" type="number" class="w-32 px-2 py-1 bg-white dark:bg-gray-700 border border-emerald-200 rounded text-right focus:ring-2 focus:ring-emerald-500 outline-none transition">
+                                    <input v-model.number="form.pago_pactado_2" type="number" step="1" class="w-32 px-2 py-1 bg-white dark:bg-gray-700 border border-emerald-200 rounded text-right focus:ring-2 focus:ring-emerald-500 outline-none transition" @input="roundField('pago_pactado_2')">
                                 </td>
                             </tr>
                             <tr>
                                 <td class="px-4 py-3 font-medium">3. Notificación</td>
                                 <td class="px-4 py-3 text-right text-gray-500">{{ formatCurrency(form.sugerido3) }}</td>
                                 <td class="px-4 py-3 text-right">
-                                    <input v-model.number="form.pago_pactado_3" type="number" class="w-32 px-2 py-1 bg-white dark:bg-gray-700 border border-emerald-200 rounded text-right focus:ring-2 focus:ring-emerald-500 outline-none transition">
+                                    <input v-model.number="form.pago_pactado_3" type="number" step="1" class="w-32 px-2 py-1 bg-white dark:bg-gray-700 border border-emerald-200 rounded text-right focus:ring-2 focus:ring-emerald-500 outline-none transition" @input="roundField('pago_pactado_3')">
                                 </td>
                             </tr>
                             <tr>
                                 <td class="px-4 py-3 font-medium">4. Ejecución</td>
                                 <td class="px-4 py-3 text-right text-gray-500">{{ formatCurrency(form.sugerido4) }}</td>
                                 <td class="px-4 py-3 text-right">
-                                    <input v-model.number="form.pago_pactado_4" type="number" class="w-32 px-2 py-1 bg-white dark:bg-gray-700 border border-emerald-200 rounded text-right focus:ring-2 focus:ring-emerald-500 outline-none transition">
+                                    <input v-model.number="form.pago_pactado_4" type="number" step="1" class="w-32 px-2 py-1 bg-white dark:bg-gray-700 border border-emerald-200 rounded text-right focus:ring-2 focus:ring-emerald-500 outline-none transition" @input="roundField('pago_pactado_4')">
                                 </td>
                             </tr>
                         </tbody>
@@ -163,7 +165,7 @@
           <button 
             @click="submit"
             :disabled="loading || form.id_abogado === 0"
-            class="px-6 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-500/30 transition disabled:opacity-50"
+            class="px-6 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-500/20 transition disabled:opacity-50"
           >
             {{ loading ? 'Guardando...' : (demanda?.seguimiento ? 'Actualizar Seguimiento' : 'Confirmar Asignación') }}
           </button>
@@ -232,7 +234,7 @@ watch(() => props.isOpen, (val) => {
 
 const totalCommissionAmount = computed(() => {
     const monto = props.demanda?.monto_demanda || 0
-    return monto * (form.value.porcentaje_comision / 100)
+    return Math.round(monto * (form.value.porcentaje_comision / 100))
 })
 
 const totalPactadoSum = computed(() => {
@@ -247,8 +249,8 @@ const remainingCommission = computed(() => {
 })
 
 const limitStage1 = computed(() => {
-    if (form.value.pago_unico > 0) return 999999999 // Si es pago único, no hay límite del 25%
-    return totalCommissionAmount.value * 0.25
+    if (form.value.pago_unico > 0) return 999999999 
+    return Math.round(totalCommissionAmount.value * 0.25)
 })
 
 const resetForm = () => {
@@ -258,16 +260,16 @@ const resetForm = () => {
             id_abogado: s.id_abogado,
             id_preset: 0,
             porcentaje_comision: s.porcentaje_demanda,
-            pago_unico: s.pago_unico,
-            monto_desestimacion: s.monto_desestimacion,
-            sugerido1: s.pago_sugerido_1,
-            sugerido2: s.pago_sugerido_2,
-            sugerido3: s.pago_sugerido_3,
-            sugerido4: s.pago_sugerido_4,
-            pago_pactado_1: s.pago_pactado_1,
-            pago_pactado_2: s.pago_pactado_2,
-            pago_pactado_3: s.pago_pactado_3,
-            pago_pactado_4: s.pago_pactado_4,
+            pago_unico: Math.round(s.pago_unico),
+            monto_desestimacion: Math.round(s.monto_desestimacion),
+            sugerido1: Math.round(s.pago_sugerido_1),
+            sugerido2: Math.round(s.pago_sugerido_2),
+            sugerido3: Math.round(s.pago_sugerido_3),
+            sugerido4: Math.round(s.pago_sugerido_4),
+            pago_pactado_1: Math.round(s.pago_pactado_1),
+            pago_pactado_2: Math.round(s.pago_pactado_2),
+            pago_pactado_3: Math.round(s.pago_pactado_3),
+            pago_pactado_4: Math.round(s.pago_pactado_4),
         }
     } else {
         form.value = {
@@ -288,22 +290,28 @@ const resetForm = () => {
     }
 }
 
+const roundField = (fieldName: keyof typeof form.value) => {
+    const val = form.value[fieldName]
+    if (typeof val === 'number') {
+        form.value[fieldName] = Math.round(val)
+    }
+}
+
 const onPresetChange = () => {
     const preset = presets.value.find(p => p.id === form.value.id_preset)
     if (preset && props.demanda && props.demanda.monto_demanda !== undefined && props.demanda.monto_demanda !== null) {
         const monto = props.demanda.monto_demanda
         form.value.porcentaje_comision = preset.porcentaje_comision || 0
-        const totalComision = monto * (form.value.porcentaje_comision / 100)
+        const totalComision = Math.round(monto * (form.value.porcentaje_comision / 100))
         
-        form.value.pago_unico = preset.monto_pago_unico || 0
-        form.value.monto_desestimacion = preset.monto_desestimacion || 0
+        form.value.pago_unico = Math.round(preset.monto_pago_unico || 0)
+        form.value.monto_desestimacion = Math.round(preset.monto_desestimacion || 0)
 
-        form.value.sugerido1 = totalComision * ((preset.p_etapa_1 || 0) / 100)
-        form.value.sugerido2 = totalComision * ((preset.p_etapa_2 || 0) / 100)
-        form.value.sugerido3 = totalComision * ((preset.p_etapa_3 || 0) / 100)
-        form.value.sugerido4 = totalComision * ((preset.p_etapa_4 || 0) / 100)
+        form.value.sugerido1 = Math.round(totalComision * ((preset.p_etapa_1 || 0) / 100))
+        form.value.sugerido2 = Math.round(totalComision * ((preset.p_etapa_2 || 0) / 100))
+        form.value.sugerido3 = Math.round(totalComision * ((preset.p_etapa_3 || 0) / 100))
+        form.value.sugerido4 = Math.round(totalComision * ((preset.p_etapa_4 || 0) / 100))
         
-        // Match pactado with suggested as default if it's a NEW assignment
         if (!props.demanda.seguimiento) {
             form.value.pago_pactado_1 = form.value.sugerido1
             form.value.pago_pactado_2 = form.value.sugerido2
@@ -314,15 +322,19 @@ const onPresetChange = () => {
 }
 
 const formatCurrency = (value: number | null | undefined) => {
-    if (value === null || value === undefined) return 'Q0.00'
-    return new Intl.NumberFormat('es-GT', { style: 'currency', currency: 'GTQ' }).format(value)
+    if (value === null || value === undefined) return 'Q0'
+    return new Intl.NumberFormat('es-GT', { 
+        style: 'currency', 
+        currency: 'GTQ',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(value)
 }
 
 const close = () => emit('close')
 const submit = async () => {
-    // Validar límite del 25% en Etapa 1 (si no es pago único)
     if (form.value.pago_unico === 0) {
-        if (form.value.pago_pactado_1 > (limitStage1.value + 0.01)) {
+        if (form.value.pago_pactado_1 > limitStage1.value) {
             await Swal.fire({
                 title: 'Límite Etapa 1 Excedido',
                 text: `El pago pactado para la etapa de Presentación no puede superar el 25% de la comisión total (${formatCurrency(limitStage1.value)}).`,
@@ -333,8 +345,7 @@ const submit = async () => {
         }
     }
 
-    // Validar que no exceda el total
-    if (remainingCommission.value < -0.01) { 
+    if (remainingCommission.value < 0) { 
         await Swal.fire({
             title: 'Límite de Comisión Excedido',
             text: 'La suma de los pagos pactados no puede superar el monto total de la comisión calculada.',
@@ -348,12 +359,12 @@ const submit = async () => {
         id_demanda: props.demanda?.id,
         id_abogado: form.value.id_abogado,
         id_preset: form.value.id_preset,
-        pago_unico: form.value.pago_unico || 0,
-        monto_desestimacion: form.value.monto_desestimacion || 0,
-        pago_pactado_1: form.value.pago_pactado_1 || 0,
-        pago_pactado_2: form.value.pago_pactado_2 || 0,
-        pago_pactado_3: form.value.pago_pactado_3 || 0,
-        pago_pactado_4: form.value.pago_pactado_4 || 0
+        pago_unico: Math.round(form.value.pago_unico || 0),
+        monto_desestimacion: Math.round(form.value.monto_desestimacion || 0),
+        pago_pactado_1: Math.round(form.value.pago_pactado_1 || 0),
+        pago_pactado_2: Math.round(form.value.pago_pactado_2 || 0),
+        pago_pactado_3: Math.round(form.value.pago_pactado_3 || 0),
+        pago_pactado_4: Math.round(form.value.pago_pactado_4 || 0)
     })
 }
 </script>
