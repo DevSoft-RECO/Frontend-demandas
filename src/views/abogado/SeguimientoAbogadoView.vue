@@ -145,15 +145,8 @@ const seguimientos = ref<any[]>([])
 const loading = ref(true)
 const isModalOpen = ref(false)
 const selectedSeguimiento = ref<any>(null)
-const currentTabId = ref('accion')
-
+const currentTabId = ref('proceso')
 const tabs = computed(() => [
-  { 
-    id: 'accion', 
-    label: 'Requiere Acción', 
-    icon: markRaw(ExclamationCircleIcon),
-    count: seguimientos.value.filter(s => s.estado_legal_demanda === 'Vigente' && s.estado_seguimiento < 5).length
-  },
   { 
     id: 'proceso', 
     label: 'En Proceso', 
@@ -178,9 +171,6 @@ const currentTabLabel = computed(() => tabs.value.find(t => t.id === currentTabI
 const currentTabIcon = computed(() => tabs.value.find(t => t.id === currentTabId.value)?.icon)
 
 const paginatedSeguimientos = computed(() => {
-  if (currentTabId.value === 'accion') {
-    return seguimientos.value.filter(s => s.estado_legal_demanda === 'Vigente' && s.estado_seguimiento < 5)
-  }
   if (currentTabId.value === 'proceso') {
     return seguimientos.value.filter(s => s.estado_legal_demanda === 'Vigente')
   }
@@ -211,13 +201,6 @@ const stats = computed(() => [
     icon: markRaw(CheckBadgeIcon),
     bgColor: 'bg-blue-50 dark:bg-blue-900/20',
     iconColor: 'text-blue-600 dark:text-blue-400'
-  },
-  { 
-    label: 'Críticos', 
-    value: seguimientos.value.filter(s => s.estado_legal_demanda === 'Vigente' && s.estado_seguimiento < 5).length, 
-    icon: markRaw(ExclamationCircleIcon),
-    bgColor: 'bg-amber-50 dark:bg-amber-900/20',
-    iconColor: 'text-amber-600 dark:text-amber-400'
   }
 ])
 
