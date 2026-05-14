@@ -88,8 +88,12 @@
                         <div class="flex-1 w-px bg-gray-200 dark:bg-gray-700 my-1 group-last:hidden"></div>
                     </div>
                     <div class="flex-1 bg-gray-50 dark:bg-gray-900/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
-                        <div class="flex justify-between items-center mb-1">
+                        <div class="flex justify-between items-center mb-2">
                             <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">{{ formatDate(entry.fecha) }}</span>
+                            <a v-if="entry.documento" :href="getDocumentUrl(entry.documento)" target="_blank" class="px-3 py-1 bg-white dark:bg-gray-800 border border-emerald-200 dark:border-emerald-800 rounded-lg text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition flex items-center gap-1.5 shadow-sm">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                                Ver Evidencia
+                            </a>
                         </div>
                         <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{{ entry.comentario }}</p>
                     </div>
@@ -103,13 +107,25 @@
                   <textarea 
                     v-model="newComment"
                     rows="3"
-                    class="w-full p-4 rounded-2xl border-2 border-emerald-100 dark:border-emerald-900/30 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all custom-scrollbar"
+                    class="w-full p-4 rounded-2xl border-2 border-emerald-100 dark:border-emerald-900/30 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all custom-scrollbar mb-14"
                     placeholder="Escribe los avances legales de esta etapa..."
                   ></textarea>
+
+                  <div class="absolute bottom-4 left-4 flex items-center">
+                    <label class="cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-gray-800 border border-emerald-200 dark:border-emerald-800/50 rounded-xl text-[10px] font-black uppercase text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                        <span class="truncate max-w-[150px]">{{ newFile ? newFile.name : 'Adjuntar PDF (Opcional)' }}</span>
+                        <input type="file" ref="fileInput" @change="onFileChange" accept=".pdf" class="hidden" />
+                    </label>
+                    <button v-if="newFile" @click="clearFile" class="ml-2 p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition" title="Quitar archivo">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                  </div>
+
                   <button 
                     @click="saveComment"
                     :disabled="!newComment.trim() || saving"
-                    class="absolute bottom-3 right-3 px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-emerald-500/30 transition-all disabled:opacity-50"
+                    class="absolute bottom-4 right-4 px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-emerald-500/30 transition-all disabled:opacity-50 disabled:shadow-none"
                   >
                     {{ saving ? 'Guardando...' : 'Registrar' }}
                   </button>
@@ -170,6 +186,8 @@ const emit = defineEmits(['close', 'refresh'])
 
 const activeTab = ref(1)
 const newComment = ref('')
+const newFile = ref<File | null>(null)
+const fileInput = ref<HTMLInputElement | null>(null)
 const saving = ref(false)
 
 const steps = [
@@ -222,8 +240,9 @@ const saveComment = async () => {
     if (!newComment.value.trim()) return
     saving.value = true
     try {
-        await seguimientoAbogadoService.addComentario(props.seguimiento.id, activeTab.value, newComment.value)
+        await seguimientoAbogadoService.addComentario(props.seguimiento.id, activeTab.value, newComment.value, newFile.value)
         newComment.value = ''
+        clearFile()
         emit('refresh')
         Swal.fire({
             icon: 'success',
@@ -237,6 +256,25 @@ const saveComment = async () => {
     } finally {
         saving.value = false
     }
+}
+
+const onFileChange = (e: Event) => {
+    const target = e.target as HTMLInputElement
+    if (target.files && target.files.length > 0) {
+        newFile.value = target.files[0]
+    }
+}
+
+const clearFile = () => {
+    newFile.value = null
+    if (fileInput.value) {
+        fileInput.value.value = ''
+    }
+}
+
+const getDocumentUrl = (path: string) => {
+    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001'
+    return `${baseUrl}${path}`
 }
 
 const confirmAvanzar = async () => {

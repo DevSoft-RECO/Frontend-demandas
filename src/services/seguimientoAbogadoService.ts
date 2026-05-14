@@ -7,8 +7,19 @@ export const seguimientoAbogadoService = {
         return response.data;
     },
 
-    async addComentario(id: number, etapa: number, comentario: string) {
-        const response = await api.post(`/seguimientos/${id}/comentario`, { etapa, comentario });
+    async addComentario(id: number, etapa: number, comentario: string, archivo?: File | null) {
+        const formData = new FormData();
+        formData.append('etapa', etapa.toString());
+        formData.append('comentario', comentario);
+        if (archivo) {
+            formData.append('archivo', archivo);
+        }
+
+        const response = await api.post(`/seguimientos/${id}/comentario`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
         return response.data;
     },
 
