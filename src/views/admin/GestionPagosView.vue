@@ -1,108 +1,164 @@
 <template>
   <div class="p-6 max-w-7xl mx-auto animate-in fade-in duration-500">
-    <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <!-- Header Corporativo -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 border-b border-slate-200 dark:border-gray-700 pb-8">
       <div>
         <h1 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white uppercase">
-          Gestión de <span class="text-emerald-500">Pagos</span>
+          Gestión de <span class="text-emerald-600 font-black">Pagos</span>
         </h1>
-        <p class="text-slate-500 dark:text-slate-400 font-medium mt-1">Control de liquidaciones y desembolsos a bufetes.</p>
+        <p class="text-slate-500 dark:text-slate-400 text-xs font-bold mt-2 uppercase tracking-widest">Control de Liquidaciones y Desembolsos Judiciales</p>
       </div>
-      <div class="flex items-center gap-3 bg-white dark:bg-gray-800 p-2 rounded-2xl shadow-sm border border-slate-100 dark:border-gray-700">
-        <svg class="w-5 h-5 text-slate-400 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-        <input 
-          v-model="searchQuery" 
-          type="text" 
-          placeholder="Buscar crédito o abogado..." 
-          class="bg-transparent border-none focus:ring-0 text-sm font-bold text-slate-700 dark:text-white w-64"
-        />
-      </div>
-    </div>
 
-    <!-- Abogados Summary Horizontal Scroll -->
-    <div class="flex gap-4 overflow-x-auto pb-4 mb-8 custom-scrollbar">
-      <div 
-        v-for="abogado in pagosStore.resumenAbogados" 
-        :key="abogado.id"
-        class="min-w-[280px] bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-gray-700 hover:border-emerald-500 transition-all cursor-pointer group"
-      >
-        <div class="flex items-center justify-between mb-4">
-          <div class="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl group-hover:bg-emerald-500 group-hover:text-white transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-          </div>
-          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ abogado.total_casos }} Casos</span>
-        </div>
-        <h4 class="text-sm font-black text-slate-800 dark:text-white truncate mb-4">{{ abogado.nombre }}</h4>
-        <div class="space-y-2">
-          <div class="flex justify-between items-center">
-            <span class="text-[9px] font-bold text-slate-400 uppercase">Pagado</span>
-            <span class="text-xs font-black text-emerald-600">{{ formatCurrency(abogado.total_pagado) }}</span>
-          </div>
-          <div class="flex justify-between items-center">
-            <span class="text-[9px] font-bold text-slate-400 uppercase">Pendiente</span>
-            <span class="text-xs font-black text-amber-600">{{ formatCurrency(abogado.total_pendiente) }}</span>
-          </div>
+      <div class="flex items-center gap-4">
+        <!-- Search Bar -->
+        <div class="hidden md:flex items-center gap-3 bg-white dark:bg-gray-800 px-4 py-2 rounded-2xl border border-slate-200 dark:border-gray-700 shadow-sm">
+          <MagnifyingGlassIcon class="w-4 h-4 text-slate-400" />
+          <input 
+            v-model="searchQuery" 
+            type="text" 
+            placeholder="Buscar crédito o deudor..." 
+            class="bg-transparent border-none focus:ring-0 text-[11px] font-black uppercase text-slate-700 dark:text-white w-48 outline-none"
+          />
         </div>
       </div>
     </div>
 
-    <!-- Main Table (Combined View of Seguimientos) -->
-    <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden border border-slate-100 dark:border-gray-700">
-      <table class="w-full text-left border-collapse">
-        <thead>
-          <tr class="bg-slate-50 dark:bg-gray-900/50 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-100 dark:border-gray-700">
-            <th class="px-6 py-5">Crédito / Abogado</th>
-            <th class="px-6 py-5">Progreso Legal</th>
-            <th class="px-6 py-5">Progreso Financiero</th>
-            <th class="px-6 py-5">Saldo</th>
-            <th class="px-6 py-5 text-right">Acciones</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-50 dark:divide-gray-700">
-          <tr v-if="loading" v-for="i in 5" :key="i" class="animate-pulse">
-            <td colspan="5" class="px-6 py-6"><div class="h-10 bg-slate-100 dark:bg-gray-700 rounded-xl"></div></td>
-          </tr>
-          
-          <tr v-else v-for="s in filteredSeguimientos" :key="s.id" class="hover:bg-slate-50 dark:hover:bg-gray-900/30 transition-colors">
-            <td class="px-6 py-5">
-              <p class="text-sm font-black text-slate-800 dark:text-white">{{ s.demanda?.no_credito }}</p>
-              <p class="text-[10px] font-bold text-slate-400 uppercase">{{ s.bufete_nombre || 'Abogado Asignado' }}</p>
-            </td>
-            <td class="px-6 py-5">
-              <div class="flex gap-1">
-                <div 
-                  v-for="n in 4" :key="n"
-                  class="w-8 h-1.5 rounded-full"
-                  :class="s.estado_seguimiento >= n ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-gray-700'"
-                ></div>
+    <!-- Filtros de Control -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-10">
+      <!-- Selector de Bufete -->
+      <div class="md:col-span-6 relative">
+        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Seleccionar Bufete / Abogado</label>
+        <div class="relative">
+          <button 
+            @click="isFilterOpen = !isFilterOpen"
+            class="w-full flex items-center justify-between px-6 py-4 bg-white dark:bg-gray-800 rounded-2xl border border-slate-200 dark:border-gray-700 hover:border-emerald-500 transition-all shadow-sm group"
+          >
+            <div class="flex items-center gap-3">
+              <div class="p-2 bg-emerald-500/10 rounded-xl">
+                <UsersIcon class="w-5 h-5 text-emerald-600" />
               </div>
-              <p class="text-[9px] font-bold text-slate-400 uppercase mt-2">Etapa {{ s.estado_seguimiento }} / 4</p>
-            </td>
-            <td class="px-6 py-5">
-              <div class="flex gap-1">
-                <div 
-                  v-for="n in 4" :key="n"
-                  class="w-8 h-1.5 rounded-full"
-                  :class="isStagePaid(s, n) ? 'bg-blue-500' : 'bg-slate-200 dark:bg-gray-700'"
-                ></div>
+              <div class="text-left">
+                <p class="text-xs font-black text-slate-800 dark:text-white uppercase truncate">{{ selectedAbogadoName }}</p>
+                <p class="text-[9px] font-bold text-slate-400 uppercase">Filtrar transacciones por este bufete</p>
               </div>
-              <p class="text-[9px] font-bold text-slate-400 uppercase mt-2">{{ countPaid(s) }} Pagadas</p>
-            </td>
-            <td class="px-6 py-5">
-              <p class="text-sm font-black text-slate-800 dark:text-white">{{ formatCurrency(calculateSaldo(s)) }}</p>
-            </td>
-            <td class="px-6 py-5 text-right">
-              <button 
-                @click="openLiquidacion(s.id)"
-                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
-              >
-                Liquidar
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </div>
+            <ChevronDownIcon class="w-5 h-5 text-slate-400 transition-transform" :class="{'rotate-180': isFilterOpen}" />
+          </button>
+
+          <Transition
+            enter-active-class="transition duration-200 ease-out"
+            enter-from-class="transform scale-95 opacity-0 -translate-y-2"
+            enter-to-class="transform scale-100 opacity-100 translate-y-0"
+            leave-active-class="transition duration-150 ease-in"
+            leave-from-class="transform scale-100 opacity-100 translate-y-0"
+            leave-to-class="transform scale-95 opacity-0 -translate-y-2"
+          >
+            <div v-if="isFilterOpen" class="absolute top-full left-0 right-0 mt-3 z-[60] bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl">
+              <div class="p-4 border-b border-slate-50 dark:border-gray-700">
+                <div class="relative">
+                  <input v-model="searchAbogado" type="text" placeholder="Buscar..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-gray-900/50 border-none rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-emerald-500" />
+                  <MagnifyingGlassIcon class="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+                </div>
+              </div>
+              <div class="max-h-64 overflow-y-auto custom-scrollbar">
+                <button @click="selectAbogado(null)" class="w-full flex items-center justify-between px-6 py-4 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
+                  <span class="text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-400">Todos los Bufetes</span>
+                </button>
+                <button 
+                  v-for="abogado in filteredBufetes" 
+                  :key="abogado.id" 
+                  @click="selectAbogado(abogado)" 
+                  class="w-full flex items-center justify-between px-6 py-4 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors border-t border-slate-50 dark:border-gray-700/50"
+                >
+                  <span class="text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 truncate">{{ abogado.nombre }}</span>
+                </button>
+              </div>
+            </div>
+          </Transition>
+        </div>
+      </div>
+
+      <!-- Resumen Rápido de Selección -->
+      <div class="md:col-span-6 grid grid-cols-2 gap-4">
+        <div class="bg-emerald-500 dark:bg-emerald-600 p-5 rounded-3xl text-white shadow-lg shadow-emerald-500/20 flex flex-col justify-between">
+          <p class="text-[9px] font-black uppercase tracking-widest opacity-80">Total Pagado</p>
+          <h3 class="text-xl font-black mt-1">{{ formatCurrency(totalPagadoFiltrado) }}</h3>
+        </div>
+        <div class="bg-slate-900 dark:bg-gray-700 p-5 rounded-3xl text-white shadow-lg shadow-slate-900/10 flex flex-col justify-between">
+          <p class="text-[9px] font-black uppercase tracking-widest opacity-80">Pendiente Liquidar</p>
+          <h3 class="text-xl font-black mt-1 text-amber-400">{{ formatCurrency(totalPendienteFiltrado) }}</h3>
+        </div>
+      </div>
     </div>
 
+    <!-- Main Table -->
+    <div class="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-3xl shadow-sm overflow-hidden mb-10">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50 dark:bg-gray-900/50 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-200 dark:border-gray-700">
+              <th class="px-8 py-6">Crédito / Deudor</th>
+              <th class="px-8 py-6">Bufete Responsable</th>
+              <th class="px-8 py-6">Estado Pagos</th>
+              <th class="px-8 py-6">Saldo Pendiente</th>
+              <th class="px-8 py-6 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-gray-700">
+            <tr v-if="loading" v-for="i in 5" :key="i" class="animate-pulse">
+              <td colspan="5" class="px-8 py-6"><div class="h-10 bg-slate-100 dark:bg-gray-700 rounded-xl"></div></td>
+            </tr>
+            
+            <tr v-else-if="filteredSeguimientos.length === 0">
+              <td colspan="5" class="px-8 py-20 text-center text-slate-400">
+                  <div class="flex flex-col items-center">
+                    <BanknotesIcon class="w-12 h-12 mb-4 opacity-10" />
+                    <p class="text-xs font-black uppercase tracking-widest">No hay pagos registrados bajo este filtro</p>
+                  </div>
+              </td>
+            </tr>
+
+            <tr v-for="s in filteredSeguimientos" :key="s.id" class="hover:bg-slate-50/50 dark:hover:bg-gray-900/20 transition-all duration-300">
+              <td class="px-8 py-6">
+                <p class="text-sm font-black text-slate-800 dark:text-white">{{ s.demanda?.no_credito || s.demanda?.no_credito_t24 || 'N/A' }}</p>
+                <p class="text-[10px] font-bold text-slate-500 uppercase mt-0.5 truncate max-w-[200px]">{{ s.demanda?.no_juicio || s.demanda?.deudor || 'No disponible' }}</p>
+              </td>
+              <td class="px-8 py-6">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-gray-700 flex items-center justify-center text-[10px] font-black text-slate-400">
+                    {{ (s.abogado?.nombre || 'B').charAt(0) }}
+                  </div>
+                  <p class="text-[11px] font-black text-slate-700 dark:text-slate-300 uppercase truncate max-w-[150px]">{{ s.abogado?.nombre || 'Bufete' }}</p>
+                </div>
+              </td>
+              <td class="px-8 py-6">
+                <div class="flex items-center gap-1.5">
+                  <div 
+                    v-for="n in 4" :key="n"
+                    class="w-6 h-1.5 rounded-full"
+                    :class="isStagePaid(s, n) ? 'bg-emerald-500 shadow-sm shadow-emerald-500/30' : 'bg-slate-200 dark:bg-gray-700'"
+                  ></div>
+                </div>
+                <p class="text-[9px] font-black text-slate-400 uppercase mt-2">{{ countPaid(s) }} de 4 Etapas Cubiertas</p>
+              </td>
+              <td class="px-8 py-6">
+                <p class="text-sm font-black text-slate-800 dark:text-white">{{ formatCurrency(calculateSaldo(s)) }}</p>
+              </td>
+              <td class="px-8 py-6 text-right">
+                <button 
+                  @click="openLiquidacion(s.id)"
+                  class="px-5 py-2.5 bg-slate-900 dark:bg-emerald-600 hover:bg-slate-800 dark:hover:bg-emerald-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-md active:scale-95"
+                >
+                  Liquidar
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Modal de Liquidación -->
     <LiquidacionModal 
       :is-open="isModalOpen"
       :seguimiento-id="selectedId"
@@ -113,24 +169,56 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { usePagosStore } from '@/stores/pagos'
 import LiquidacionModal from '@/components/pagos/LiquidacionModal.vue'
 import api from '@/api/axios'
+import { 
+  UsersIcon, 
+  ChevronDownIcon, 
+  MagnifyingGlassIcon, 
+  BanknotesIcon 
+} from '@heroicons/vue/24/outline'
 
 const pagosStore = usePagosStore()
 const searchQuery = ref('')
 const loading = ref(true)
 const allSeguimientos = ref<any[]>([])
+const bufetes = ref<any[]>([])
 const isModalOpen = ref(false)
 const selectedId = ref<number | null>(null)
+
+// Filtros
+const selectedAbogadoId = ref<number | null>(null)
+const isFilterOpen = ref(false)
+const searchAbogado = ref('')
+
+const selectedAbogadoName = computed(() => {
+  if (selectedAbogadoId.value === null) return 'Todos los Bufetes'
+  return bufetes.value.find(b => b.id === selectedAbogadoId.value)?.nombre || 'Bufete Seleccionado'
+})
+
+const filteredBufetes = computed(() => {
+  if (!searchAbogado.value) return bufetes.value
+  return bufetes.value.filter(b => b.nombre.toLowerCase().includes(searchAbogado.value.toLowerCase()))
+})
 
 const fetchAllData = async () => {
     loading.value = true
     try {
         await pagosStore.fetchResumen()
-        const response = await api.get('/seguimientos') // Reutilizamos el de listado general
-        allSeguimientos.value = response.data
+        // Cargamos bufetes para el selector
+        const bufRes = await api.get('/bufetes')
+        bufetes.value = bufRes.data
+
+        // Cargamos seguimientos (usando el nuevo formato paginado pero con pageSize alto para control local si se desea)
+        const response = await api.get('/seguimientos', {
+            params: { 
+                pageSize: 1000,
+                abogadoId: selectedAbogadoId.value || 0
+            }
+        })
+        allSeguimientos.value = response.data.data || []
     } catch (error) {
         console.error(error)
     } finally {
@@ -139,13 +227,35 @@ const fetchAllData = async () => {
 }
 
 const filteredSeguimientos = computed(() => {
+    if (!Array.isArray(allSeguimientos.value)) return []
     return allSeguimientos.value.filter(s => {
         const query = searchQuery.value.toLowerCase()
         return s.demanda?.no_credito?.toLowerCase().includes(query) || 
-               s.bufete_nombre?.toLowerCase().includes(query) ||
+               s.abogado?.nombre?.toLowerCase().includes(query) ||
                s.demanda?.deudor?.toLowerCase().includes(query)
     })
 })
+
+// Totales filtrados
+const totalPagadoFiltrado = computed(() => {
+    return filteredSeguimientos.value.reduce((acc, s) => {
+        let pagado = 0
+        if (s.is_pagado_1) pagado += (s.pago_pactado_1 || 0)
+        if (s.is_pagado_2) pagado += (s.pago_pactado_2 || 0)
+        if (s.is_pagado_3) pagado += (s.pago_pactado_3 || 0)
+        if (s.is_pagado_4) pagado += (s.pago_pactado_4 || 0)
+        return acc + pagado
+    }, 0)
+})
+
+const totalPendienteFiltrado = computed(() => {
+    return filteredSeguimientos.value.reduce((acc, s) => acc + calculateSaldo(s), 0)
+})
+
+const selectAbogado = (abogado: any | null) => {
+  selectedAbogadoId.value = abogado ? abogado.id : null
+  isFilterOpen.value = false
+}
 
 const isStagePaid = (s: any, n: number) => s[`is_pagado_${n}`]
 const countPaid = (s: any) => {
@@ -180,12 +290,16 @@ const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('es-GT', { style: 'currency', currency: 'GTQ' }).format(val)
 }
 
+watch(selectedAbogadoId, () => {
+    fetchAllData()
+})
+
 onMounted(fetchAllData)
 </script>
 
 <style scoped>
 @reference "@/assets/main.css";
-.custom-scrollbar::-webkit-scrollbar { height: 6px; }
+.custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; }
