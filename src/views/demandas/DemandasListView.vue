@@ -37,6 +37,14 @@
           Importar CSV
         </button>
         <button 
+          @click="exportCSV"
+          :disabled="exporting"
+          class="flex items-center justify-center gap-2 px-6 py-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-bold rounded-xl shadow-lg shadow-gray-200/20 dark:shadow-gray-900/20 border border-gray-200 dark:border-gray-700 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+          {{ exporting ? 'Exportando...' : 'Exportar CSV' }}
+        </button>
+        <button 
           @click="openCreateModal"
           class="flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all hover:scale-105 active:scale-95"
         >
@@ -260,6 +268,7 @@ const isPagosModalOpen = ref(false)
 const selectedDemanda = ref<Demanda | null>(null)
 const selectedSeguimientoId = ref<number | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
+const exporting = ref(false)
 
 // Paginación
 const currentPage = ref(1)
@@ -335,6 +344,27 @@ const handleFileUpload = async (event: Event) => {
     } finally {
         // Reset the input so the same file can be selected again if needed
         if (fileInput.value) fileInput.value.value = ''
+    }
+}
+
+const exportCSV = async () => {
+    exporting.value = true
+    try {
+        await demandaService.exportCSV()
+        Swal.fire({
+            icon: 'success',
+            title: 'Exportación Exitosa',
+            text: 'El archivo CSV se ha descargado correctamente',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000
+        })
+    } catch (error) {
+        console.error('Error exporting CSV:', error)
+        Swal.fire('Error', 'No se pudo exportar el archivo CSV', 'error')
+    } finally {
+        exporting.value = false
     }
 }
 
