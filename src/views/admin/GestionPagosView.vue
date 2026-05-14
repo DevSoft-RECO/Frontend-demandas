@@ -10,6 +10,16 @@
       </div>
 
       <div class="flex items-center gap-4">
+        <!-- Export Button -->
+        <button 
+          @click="exportToCSV"
+          :disabled="loading"
+          class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-gray-700 transition-all shadow-sm disabled:opacity-50"
+        >
+          <ArrowDownTrayIcon class="w-4 h-4 text-emerald-600" />
+          Exportar CSV
+        </button>
+
         <!-- Search Bar -->
         <div class="hidden md:flex items-center gap-3 bg-white dark:bg-gray-800 px-4 py-2 rounded-2xl border border-slate-200 dark:border-gray-700 shadow-sm">
           <MagnifyingGlassIcon class="w-4 h-4 text-slate-400" />
@@ -177,7 +187,8 @@ import {
   UsersIcon, 
   ChevronDownIcon, 
   MagnifyingGlassIcon, 
-  BanknotesIcon 
+  BanknotesIcon,
+  ArrowDownTrayIcon
 } from '@heroicons/vue/24/outline'
 
 const pagosStore = usePagosStore()
@@ -230,11 +241,32 @@ const filteredSeguimientos = computed(() => {
     if (!Array.isArray(allSeguimientos.value)) return []
     return allSeguimientos.value.filter(s => {
         const query = searchQuery.value.toLowerCase()
-        return s.demanda?.no_credito?.toLowerCase().includes(query) || 
-               s.abogado?.nombre?.toLowerCase().includes(query) ||
-               s.demanda?.deudor?.toLowerCase().includes(query)
+        return (s.demanda?.no_credito || '').toLowerCase().includes(query) || 
+               (s.demanda?.no_credito_t24 || '').toLowerCase().includes(query) ||
+               (s.abogado?.nombre || '').toLowerCase().includes(query) ||
+               (s.demanda?.deudor || '').toLowerCase().includes(query)
     })
 })
+
+const exportToCSV = async () => {
+    try {
+        const response = await api.get('/seguimientos/export', {
+            params: {
+                abogadoId: selectedAbogadoId.value || 0
+            },
+            responseType: 'blob'
+        })
+        const url = window.URL.createObjectURL(new Blob([response.data]))
+        const link = document.createElement('a')
+        link.href = url
+        link.setAttribute('download', `Reporte_Pagos_${new Date().toISOString().split('T')[0]}.csv`)
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+    } catch (error) {
+        console.error('Error al exportar CSV:', error)
+    }
+}
 
 // Totales filtrados
 const totalPagadoFiltrado = computed(() => {
