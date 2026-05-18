@@ -204,14 +204,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, markRaw } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import Swal from 'sweetalert2'
 import api from '@/api/axios'
 import { 
     BuildingOfficeIcon, 
     UserPlusIcon, 
-    CheckBadgeIcon, 
-    ShieldCheckIcon,
     BuildingOffice2Icon,
     PhoneIcon,
     TrashIcon,

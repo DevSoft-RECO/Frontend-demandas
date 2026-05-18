@@ -440,11 +440,6 @@ const closeAssignModal = () => {
     selectedDemanda.value = null
 }
 
-const openPagosModal = (seguimientoId: number) => {
-    selectedSeguimientoId.value = seguimientoId
-    isPagosModalOpen.value = true
-}
-
 const handleAssignAbogado = async (data: any) => {
     saving.value = true
     try {

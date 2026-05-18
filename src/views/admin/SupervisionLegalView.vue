@@ -239,15 +239,10 @@ import SeguimientoDetalleModal from '../abogado/SeguimientoDetalleModal.vue'
 import { 
   UsersIcon, 
   ChevronDownIcon, 
-  MagnifyingGlassIcon, 
-  UserIcon, 
   SparklesIcon, 
   ChevronRightIcon,
   ChevronLeftIcon,
   ScaleIcon,
-  ClockIcon,
-  CheckBadgeIcon,
-  ClipboardDocumentCheckIcon,
   ArrowDownTrayIcon
 } from '@heroicons/vue/24/outline'
 

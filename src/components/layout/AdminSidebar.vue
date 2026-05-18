@@ -92,12 +92,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { useLayoutStore } from '@/stores/layout'
 import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
 const authStore = useAuthStore()
-const layoutStore = useLayoutStore()
 const openGroups = ref<string[]>([])
 const dockRef = ref<HTMLElement | null>(null)
 

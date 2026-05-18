@@ -211,7 +211,7 @@ const fetchAgencias = async () => {
 
 onMounted(fetchAgencias)
 
-const form = ref<Demanda>({
+const form = ref<Partial<Demanda>>({
   id_agencia: null,
   no_credito: '',
   cif: '',

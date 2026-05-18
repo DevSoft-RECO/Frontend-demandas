@@ -132,13 +132,11 @@ import { ref, onMounted, computed, markRaw } from 'vue'
 import { seguimientoAbogadoService } from '@/services/seguimientoAbogadoService'
 import SeguimientoDetalleModal from './SeguimientoDetalleModal.vue'
 import { 
-  ClipboardDocumentCheckIcon, 
   ClockIcon, 
   CheckBadgeIcon, 
   ScaleIcon,
   ChevronRightIcon,
-  Squares2X2Icon,
-  ExclamationCircleIcon
+  Squares2X2Icon
 } from '@heroicons/vue/24/outline'
 
 const seguimientos = ref<any[]>([])
