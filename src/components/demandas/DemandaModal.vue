@@ -78,9 +78,49 @@
                   <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Fecha Ingreso Demanda</label>
                   <input v-model="form.fecha_ingreso_demanda" type="text" class="form-input" placeholder="Ej. 15/03/2023">
                 </div>
-                <div class="md:col-span-2">
+                <div class="md:col-span-2 relative">
                   <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Abogado (Origen Excel)</label>
-                  <input v-model="form.abogado_nombre_excel" type="text" class="form-input" placeholder="Nombre del abogado según Excel">
+                  <div class="relative">
+                    <input 
+                      v-model="form.abogado_nombre_excel" 
+                      type="text" 
+                      class="form-input pr-10" 
+                      placeholder="Nombre del abogado según Excel"
+                      @focus="showAbogadosDropdown = true"
+                      @blur="showAbogadosDropdown = false"
+                    >
+                    <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none text-gray-400 dark:text-gray-500">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                    
+                    <Transition name="fade-fast">
+                      <div 
+                        v-if="showAbogadosDropdown" 
+                        class="absolute z-10 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 p-2 space-y-1 custom-scrollbar"
+                      >
+                        <div v-if="filteredAbogados.length === 0" class="px-3 py-2 text-xs text-gray-400 dark:text-gray-500 text-center uppercase tracking-wider font-semibold">
+                          No se encontraron abogados
+                        </div>
+                        <button
+                          v-for="abogado in filteredAbogados"
+                          :key="abogado.id"
+                          type="button"
+                          @mousedown.prevent="selectAbogado(abogado.nombre)"
+                          class="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-700/60 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition flex items-center justify-between"
+                        >
+                          <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            <span>{{ abogado.nombre }}</span>
+                          </div>
+                          <span class="text-[9px] font-black px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 uppercase tracking-widest">ID: {{ abogado.id }}</span>
+                        </button>
+                      </div>
+                    </Transition>
+                  </div>
                 </div>
                 <div class="md:col-span-2">
                   <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Fiadores</label>
@@ -144,7 +184,7 @@
               </h4>
               <div class="grid grid-cols-1 gap-4">
                 <div>
-                  <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Seguimiento Legacy (Histórico)</label>
+                  <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Seguimiento Legal (Histórico)</label>
                   <textarea v-model="form.seguimiento_legacy" rows="4" class="form-input text-xs font-mono"></textarea>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -185,10 +225,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
 import type { Demanda } from '@/types/demanda'
 import type { Agencia } from '@/types/agencia'
+import type { Bufete } from '@/types/bufete'
 import { agenciaService } from '@/services/agenciaService'
+import { bufeteService } from '@/services/bufeteService'
 
 const props = defineProps<{
   isOpen: boolean
@@ -200,16 +242,41 @@ const props = defineProps<{
 const emit = defineEmits(['close', 'save'])
 
 const agencias = ref<Agencia[]>([])
+const abogados = ref<Bufete[]>([])
+const showAbogadosDropdown = ref(false)
 
-const fetchAgencias = async () => {
+const fetchCatalogs = async () => {
     try {
-        agencias.value = await agenciaService.getAll()
+        const [agList, abList] = await Promise.all([
+            agenciaService.getAll(),
+            bufeteService.getAll()
+        ])
+        agencias.value = agList
+        abogados.value = abList
     } catch (error) {
-        console.error('Error fetching agencias:', error)
+        console.error('Error fetching catalogs:', error)
     }
 }
 
-onMounted(fetchAgencias)
+onMounted(fetchCatalogs)
+
+const filteredAbogados = computed(() => {
+  const query = (form.value.abogado_nombre_excel || '').trim().toLowerCase()
+  const uniqueAbogados = abogados.value.filter((abogado, index, self) => 
+    abogado.nombre && self.findIndex(a => a.nombre === abogado.nombre) === index
+  )
+  if (!query) {
+    return uniqueAbogados
+  }
+  return uniqueAbogados.filter(abogado => 
+    abogado.nombre!.toLowerCase().includes(query)
+  )
+})
+
+const selectAbogado = (nombre: string | null | undefined) => {
+  form.value.abogado_nombre_excel = nombre || ''
+  showAbogadosDropdown.value = false
+}
 
 const form = ref<Partial<Demanda>>({
   id_agencia: null,
@@ -287,6 +354,9 @@ const submit = () => {
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
+
+.fade-fast-enter-active, .fade-fast-leave-active { transition: opacity 0.15s ease; }
+.fade-fast-enter-from, .fade-fast-leave-to { opacity: 0; }
 
 .custom-scrollbar::-webkit-scrollbar { width: 6px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
