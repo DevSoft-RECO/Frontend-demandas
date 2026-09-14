@@ -310,7 +310,7 @@ const resetForm = () => {
 const roundField = (fieldName: keyof typeof form.value) => {
     const val = form.value[fieldName]
     if (typeof val === 'number') {
-        form.value[fieldName] = Math.round(val)
+        (form.value as any)[fieldName] = Math.round(val)
     }
 }
 

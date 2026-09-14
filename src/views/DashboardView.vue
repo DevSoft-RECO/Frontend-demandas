@@ -52,14 +52,18 @@
                 <p class="text-xs text-slate-400 font-bold mt-1 uppercase">Distribución de expedientes según su estado legal</p>
             </div>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-gray-50 dark:bg-gray-900/10 p-5 rounded-2xl border border-gray-100 dark:border-gray-800/20 text-center">
+                <p class="text-3xl font-black text-gray-600">{{ statusCounts.pendientes }}</p>
+                <p class="text-[10px] font-black uppercase tracking-widest text-gray-500 mt-1">Pendientes</p>
+            </div>
             <div class="bg-emerald-50 dark:bg-emerald-900/10 p-5 rounded-2xl border border-emerald-100 dark:border-emerald-800/20 text-center">
-                <p class="text-3xl font-black text-emerald-600">{{ statusCounts.vigentes }}</p>
-                <p class="text-[10px] font-black uppercase tracking-widest text-emerald-500 mt-1">Vigentes</p>
+                <p class="text-3xl font-black text-emerald-600">{{ statusCounts.activos }}</p>
+                <p class="text-[10px] font-black uppercase tracking-widest text-emerald-500 mt-1">Activos</p>
             </div>
             <div class="bg-red-50 dark:bg-red-900/10 p-5 rounded-2xl border border-red-100 dark:border-red-800/20 text-center">
-                <p class="text-3xl font-black text-red-600">{{ statusCounts.desistidos }}</p>
-                <p class="text-[10px] font-black uppercase tracking-widest text-red-500 mt-1">Desistidos</p>
+                <p class="text-3xl font-black text-red-600">{{ statusCounts.cancelados }}</p>
+                <p class="text-[10px] font-black uppercase tracking-widest text-red-500 mt-1">Cancelados</p>
             </div>
             <div class="bg-blue-50 dark:bg-blue-900/10 p-5 rounded-2xl border border-blue-100 dark:border-blue-800/20 text-center">
                 <p class="text-3xl font-black text-blue-600">{{ statusCounts.finalizados }}</p>
@@ -267,7 +271,7 @@ const kpis = ref([
 const stages = ref<DashboardStats['stages']>([])
 const movements = ref<DashboardStats['recent_movements']>([])
 const bufetes = ref<DashboardStats['top_lawyers']>([])
-const statusCounts = ref({ vigentes: 0, desistidos: 0, finalizados: 0 })
+const statusCounts = ref({ pendientes: 0, activos: 0, cancelados: 0, finalizados: 0 })
 const loading = ref(true)
 
 const formatCurrency = (val: number) => {
@@ -286,8 +290,9 @@ const fetchStats = async () => {
 
         // Status distribution
         statusCounts.value = {
-            vigentes: data.casos_vigentes,
-            desistidos: data.casos_desistidos,
+            pendientes: data.casos_pendientes,
+            activos: data.casos_activos,
+            cancelados: data.casos_cancelados,
             finalizados: data.casos_finalizados
         }
 

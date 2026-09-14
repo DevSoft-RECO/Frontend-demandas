@@ -6,8 +6,9 @@ export interface DashboardStats {
     total_pendiente: number;
     pagos_pendientes: number;
     abogados_activos: number;
-    casos_vigentes: number;
-    casos_desistidos: number;
+    casos_pendientes: number;
+    casos_activos: number;
+    casos_cancelados: number;
     casos_finalizados: number;
     capital_en_riesgo: number;
     stages: Array<{
