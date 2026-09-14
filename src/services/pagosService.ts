@@ -26,8 +26,8 @@ export const pagosService = {
         return response.data;
     },
 
-    async registrarDesembolso(id_seguimiento: number, etapa: number | string, cancelar: boolean = false) {
-        const response = await api.patch('/pagos/registrar-desembolso', { id_seguimiento, etapa, cancelar });
+    async registrarDesembolso(id_seguimiento: number, etapa: number | string, cancelar: boolean = false, monto_abono: number = 0) {
+        const response = await api.patch('/pagos/registrar-desembolso', { id_seguimiento, etapa, cancelar, monto_abono });
         return response.data;
     }
 };

@@ -150,6 +150,34 @@
                         <div v-else class="text-[10px] font-bold text-slate-400">{{ formatDate(detalle?.seguimiento?.fecha_pago_desestimacion) }}</div>
                     </td>
                 </tr>
+
+                <!-- Cargos Adicionales -->
+                <tr v-if="detalle?.seguimiento?.monto_cargos_adicionales !== null && detalle?.seguimiento?.monto_cargos_adicionales !== undefined && detalle?.seguimiento?.monto_cargos_adicionales > 0" class="hover:bg-slate-50 dark:hover:bg-gray-900/20 transition-colors">
+                    <td class="px-6 py-4">
+                        <p class="text-sm font-bold text-amber-600 dark:text-amber-400 uppercase">Cargos Adicionales</p>
+                        <p class="text-[9px] font-bold text-slate-500 uppercase mt-0.5">{{ detalle.seguimiento.descripcion_cargos_adicionales || 'Sin descripción' }}</p>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex flex-col">
+                            <span class="text-[9px] font-bold text-slate-400 uppercase leading-none mb-1">Monto Actual / Pagado</span>
+                            <div class="flex items-center gap-2">
+                                <p class="text-sm font-black text-amber-700 dark:text-amber-300">{{ formatCurrency(detalle.seguimiento.monto_cargos_adicionales) }}</p>
+                                <span class="text-xs text-slate-400">/</span>
+                                <p class="text-sm font-black text-emerald-600">{{ formatCurrency(detalle.seguimiento.monto_cargos_adicionales_pagado) }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <span v-if="detalle.seguimiento.monto_cargos_adicionales_pagado >= detalle.seguimiento.monto_cargos_adicionales" class="px-3 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-full text-[10px] font-black uppercase">Liquidado</span>
+                        <span v-else class="px-3 py-1 bg-slate-100 text-slate-500 dark:bg-gray-700 dark:text-gray-400 rounded-full text-[10px] font-black uppercase">Pendiente</span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <button v-if="detalle.seguimiento.monto_cargos_adicionales_pagado < detalle.seguimiento.monto_cargos_adicionales" @click="handlePayment('cargos_adicionales')" :disabled="processing === 'cargos_adicionales'" class="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-md shadow-amber-500/20">
+                            {{ processing === 'cargos_adicionales' ? '...' : 'Abonar' }}
+                        </button>
+                        <div v-else class="text-[10px] font-bold text-slate-400">{{ formatDate(detalle?.seguimiento?.fecha_pago_cargos_adicionales) }}</div>
+                    </td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -262,9 +290,37 @@ const handlePayment = async (etapa: number | string) => {
         }
     }
 
+    let montoAbono = 0
+    if (etapa === 'cargos_adicionales') {
+        const maxAbono = (detalle.value?.seguimiento?.monto_cargos_adicionales || 0) - (detalle.value?.seguimiento?.monto_cargos_adicionales_pagado || 0)
+        
+        const { value: abono, isConfirmed } = await Swal.fire({
+            title: 'Abono a Cargos Adicionales',
+            text: `El saldo pendiente es de Q${maxAbono}. ¿Cuánto desea abonar?`,
+            input: 'number',
+            inputValue: maxAbono,
+            showCancelButton: true,
+            confirmButtonText: 'Abonar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#f59e0b',
+            inputValidator: (value) => {
+                if (!value || isNaN(Number(value)) || Number(value) <= 0) {
+                    return 'Debe ingresar un monto válido mayor a 0'
+                }
+                if (Number(value) > maxAbono) {
+                    return `El monto no puede superar el saldo pendiente (Q${maxAbono})`
+                }
+                return null
+            }
+        })
+        
+        if (!isConfirmed) return
+        montoAbono = Number(abono)
+    }
+
     processing.value = etapa
     try {
-        await pagosService.registrarDesembolso(props.seguimientoId, etapa, isCancellation)
+        await pagosService.registrarDesembolso(props.seguimientoId, etapa, isCancellation, montoAbono)
         await fetchDetalle()
         emit('refresh')
         

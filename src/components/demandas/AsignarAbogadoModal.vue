@@ -91,6 +91,17 @@
                         <input v-model.number="form.monto_desestimacion" type="number" step="1" class="form-input !pl-8" placeholder="0" @input="roundField('monto_desestimacion')">
                     </div>
                 </div>
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-gray-500 tracking-widest mb-1">Cargos Adicionales (Opcional)</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-2 text-gray-400">Q</span>
+                        <input v-model.number="form.monto_cargos_adicionales" type="number" step="1" class="form-input !pl-8" placeholder="0">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-gray-500 tracking-widest mb-1">Descripción Cargos Adicionales</label>
+                    <input v-model="form.descripcion_cargos_adicionales" type="text" class="form-input" placeholder="Ej: Gastos notariales">
+                </div>
             </div>
 
             <!-- Tabla de Pagos Pactados -->
@@ -209,6 +220,8 @@ const form = ref({
     pago_pactado_2: 0,
     pago_pactado_3: 0,
     pago_pactado_4: 0,
+    monto_cargos_adicionales: null as number | null,
+    descripcion_cargos_adicionales: null as string | null,
 })
 
 const fetchCatalogs = async () => {
@@ -259,17 +272,19 @@ const resetForm = () => {
         form.value = {
             id_abogado: s.id_abogado,
             id_preset: 0,
-            porcentaje_comision: s.porcentaje_demanda,
-            pago_unico: Math.round(s.pago_unico),
-            monto_desestimacion: Math.round(s.monto_desestimacion),
-            sugerido1: Math.round(s.pago_sugerido_1),
-            sugerido2: Math.round(s.pago_sugerido_2),
-            sugerido3: Math.round(s.pago_sugerido_3),
-            sugerido4: Math.round(s.pago_sugerido_4),
-            pago_pactado_1: Math.round(s.pago_pactado_1),
-            pago_pactado_2: Math.round(s.pago_pactado_2),
-            pago_pactado_3: Math.round(s.pago_pactado_3),
-            pago_pactado_4: Math.round(s.pago_pactado_4),
+            porcentaje_comision: s.porcentaje_demanda || 0,
+            pago_unico: Math.round(s.pago_unico || 0),
+            monto_desestimacion: Math.round(s.monto_desestimacion || 0),
+            sugerido1: Math.round(s.pago_sugerido_1 || 0),
+            sugerido2: Math.round(s.pago_sugerido_2 || 0),
+            sugerido3: Math.round(s.pago_sugerido_3 || 0),
+            sugerido4: Math.round(s.pago_sugerido_4 || 0),
+            pago_pactado_1: Math.round(s.pago_pactado_1 || 0),
+            pago_pactado_2: Math.round(s.pago_pactado_2 || 0),
+            pago_pactado_3: Math.round(s.pago_pactado_3 || 0),
+            pago_pactado_4: Math.round(s.pago_pactado_4 || 0),
+            monto_cargos_adicionales: s.monto_cargos_adicionales,
+            descripcion_cargos_adicionales: s.descripcion_cargos_adicionales,
         }
     } else {
         form.value = {
@@ -286,6 +301,8 @@ const resetForm = () => {
             pago_pactado_2: 0,
             pago_pactado_3: 0,
             pago_pactado_4: 0,
+            monto_cargos_adicionales: null,
+            descripcion_cargos_adicionales: null,
         }
     }
 }
@@ -364,7 +381,9 @@ const submit = async () => {
         pago_pactado_1: Math.round(form.value.pago_pactado_1 || 0),
         pago_pactado_2: Math.round(form.value.pago_pactado_2 || 0),
         pago_pactado_3: Math.round(form.value.pago_pactado_3 || 0),
-        pago_pactado_4: Math.round(form.value.pago_pactado_4 || 0)
+        pago_pactado_4: Math.round(form.value.pago_pactado_4 || 0),
+        monto_cargos_adicionales: form.value.monto_cargos_adicionales,
+        descripcion_cargos_adicionales: form.value.descripcion_cargos_adicionales
     })
 }
 </script>

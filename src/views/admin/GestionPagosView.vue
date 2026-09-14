@@ -356,6 +356,7 @@ const totalPagadoFiltrado = computed(() => {
         if (s.is_pagado_4) pagado += (s.pago_pactado_4 || 0)
         if (s.is_pagado_desestimacion) pagado += (s.monto_desestimacion || 0)
         if (s.is_pagado_unico) pagado += (s.pago_unico || 0)
+        pagado += (s.monto_cargos_adicionales_pagado || 0)
         return acc + pagado
     }, 0)
 })
@@ -399,6 +400,14 @@ const calculateSaldo = (s: any) => {
     if (s.estado_legal_demanda === 'Desistido') {
         if (!s.is_pagado_desestimacion) {
             saldo += (s.monto_desestimacion || 0)
+        }
+    }
+
+    // Cargos Adicionales
+    if (s.monto_cargos_adicionales !== null && s.monto_cargos_adicionales !== undefined) {
+        const saldoCargos = s.monto_cargos_adicionales - (s.monto_cargos_adicionales_pagado || 0)
+        if (saldoCargos > 0) {
+            saldo += saldoCargos
         }
     }
 

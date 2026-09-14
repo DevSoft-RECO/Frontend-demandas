@@ -14,6 +14,10 @@ export interface Seguimiento {
     porcentaje_demanda: number;
     pago_unico: number;
     monto_desestimacion: number;
+    monto_cargos_adicionales: number | null;
+    descripcion_cargos_adicionales: string | null;
+    monto_cargos_adicionales_pagado: number;
+    fecha_pago_cargos_adicionales: string | null;
 
     // Etapa 1
     etapa_1_json: any[];
@@ -55,4 +59,6 @@ export interface CreateTrackingRequest {
     pago_pactado_2: number;
     pago_pactado_3: number;
     pago_pactado_4: number;
+    monto_cargos_adicionales: number | null;
+    descripcion_cargos_adicionales: string | null;
 }
