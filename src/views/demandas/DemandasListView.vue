@@ -393,25 +393,7 @@ const changePage = (page: number) => {
     fetchDemandas()
 }
 
-const availableStates = computed(() => {
-    const states = new Set<string>()
-    // Estados base del sistema
-    const baseStates = ['Vigente', 'Desistido', 'Cancelado', 'Suspendido']
-    baseStates.forEach(s => states.add(s))
-    
-    // Como ahora los resultados están paginados, solo podemos sugerir los estados conocidos 
-    // o los que aparezcan en la página actual. Para que sea real, el backend debería proveer la lista 
-    // de estados únicos si se desea algo dinámico global.
-    // Por ahora mantendremos los base + los que aparezcan en la data cargada.
-    demandas.value.forEach(d => {
-        if (d.estado_legal) {
-            const s = d.estado_legal.charAt(0).toUpperCase() + d.estado_legal.slice(1).toLowerCase()
-            states.add(s)
-        }
-    })
-    
-    return Array.from(states).sort()
-})
+const availableStates = ['Vigente', 'Desistido', 'Cancelado', 'Suspendido']
 
 const filteredDemandas = computed(() => demandas.value)
 
@@ -508,24 +490,33 @@ const formatCurrency = (value: number | null) => {
     return new Intl.NumberFormat('es-GT', { style: 'currency', currency: 'GTQ' }).format(value)
 }
 
-const formatStatus = (status: string | null) => {
-    if (!status) return 'S/E'
+const getNormalizedStatus = (status: string | null): string => {
+    if (!status) return 'Vigente'
+    const s = status.toUpperCase().trim()
+    if (s.includes('DESIST') || s.includes('DISIST') || s.includes('DESIT')) return 'Desistido'
+    if (s.includes('CANCEL') || s.includes('RESUELT')) return 'Cancelado'
+    if (s.includes('SUSPEND')) return 'Suspendido'
+    if (s.includes('VIGENT')) return 'Vigente'
     return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()
 }
 
+const formatStatus = (status: string | null) => {
+    return getNormalizedStatus(status)
+}
+
 const getStatusClass = (status: string | null) => {
-    const s = status?.toUpperCase()
+    const s = getNormalizedStatus(status).toUpperCase()
     switch (s) {
         case 'VIGENTE': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
         case 'DESISTIDO': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
         case 'CANCELADO': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
         case 'SUSPENDIDO': return 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300'
-        default: return 'bg-blue-100 text-blue-700'
+        default: return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
     }
 }
 
 const getStatusDotClass = (status: string | null) => {
-    const s = status?.toUpperCase()
+    const s = getNormalizedStatus(status).toUpperCase()
     switch (s) {
         case 'VIGENTE': return 'bg-emerald-500'
         case 'DESISTIDO': return 'bg-amber-500'
